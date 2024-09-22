@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from typing import Self, Callable
+from typing import Self, Sequence
+from fractions import Fraction
 
-from .matrix import Matrix
-from .vector import Vector
+from .matrix import Matrix, NumberF
 
 __all__ = ('SquareMatrix',)
 
 class SquareMatrix(Matrix):
     __slots__ = ('_inner', 'n')
 
-    def __init__(self, entries: list[list[float]]) -> None:
+    def __init__(self, entries: Sequence[Sequence[NumberF]]) -> None:
         super().__init__(entries)
 
         if self.rows != self.cols:
@@ -18,7 +18,7 @@ class SquareMatrix(Matrix):
         self.n = self.rows
 
     @classmethod
-    def from_1D(cls, entries: list[float], n: int) -> Self:
+    def from_1D(cls, entries: Sequence[NumberF], n: int) -> Self:
         """Creates a matrix of size `n` from a flat, 1-dimensional list"""
         return super().from_1D(entries, n)
 
@@ -37,7 +37,7 @@ class SquareMatrix(Matrix):
             for i in range(n)
         ])
 
-    def get_minor_at(self, i: int, j: int) -> float:
+    def get_minor_at(self, i: int, j: int) -> Fraction:
         """Gets the minor of the element at row `i` and column `j` in this matrix"""
         minor = []
 
@@ -50,7 +50,7 @@ class SquareMatrix(Matrix):
                 minor.append(row)
         return SquareMatrix(minor).det()
 
-    def get_cofactor_at(self, i: int, j: int) -> float:
+    def get_cofactor_at(self, i: int, j: int) -> Fraction:
         """Gets the cofactor of the element at row `i` and column `j` in this matrix"""
         return (-1) ** (i + j) * self.get_minor_at(i, j)
 
@@ -67,11 +67,14 @@ class SquareMatrix(Matrix):
         cofactor.transpose()
         return cofactor
 
-    def det(self) -> float:
+    def det(self) -> Fraction:
         """Evaluates the determinant of this matrix"""
         if self.n == 1:
             return self._inner[0][0]
-        return sum(self._inner[0][j] * self.get_cofactor_at(0, j) for j in range(self.n))
+        return sum(
+            (self._inner[0][j] * self.get_cofactor_at(0, j) for j in range(self.n)),
+            start=Fraction()
+        )
 
     def inverted(self) -> SquareMatrix:
         """Returns a new matrix that is this matrix's inverse (if exists)"""
@@ -86,6 +89,9 @@ class SquareMatrix(Matrix):
             self /= det
         else:
             raise ZeroDivisionError('Inverse does not exist: determinant is 0')
+
+    def __abs__(self) -> Fraction:
+        return self.det()
 
     def __invert__(self) -> SquareMatrix:
         return self.inverted()

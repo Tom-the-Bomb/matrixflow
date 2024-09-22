@@ -1,33 +1,40 @@
 from __future__ import annotations
 
-from typing import Self, Callable
-from numbers import Number
+from typing import Self, Sequence, Callable
+from fractions import Fraction
 
+from .utils import Base, Number, NumberF, convert
 from .vector import Vector
 
 __all__ = ('Matrix',)
 
-class Matrix:
+class Matrix(Base):
     __slots__ = ('_inner',)
 
-    def __init__(self, entries: list[list[float]]) -> None:
+    def __init__(self, entries: Sequence[Sequence[NumberF]]) -> None:
         if not entries:
             raise ValueError('Cannot have empty matrix')
 
         if not len(set(len(row) for row in entries)) == 1:
             raise ValueError('Row sizes are inconsistent')
-        self._inner = entries
+
+        self._inner = [
+            [convert(x) for x in row]
+            for row in entries
+        ]
 
     @property
     def rows(self) -> int:
+        """Returns the number of `rows` this matrix has"""
         return len(self._inner)
 
     @property
     def cols(self) -> int:
+        """Returns the number of `columns` this matrix has"""
         return len(self._inner[0])
 
     @classmethod
-    def from_1D(cls, entries: list[float], row_size: int) -> Self:
+    def from_1D(cls, entries: Sequence[NumberF], row_size: int) -> Self:
         if len(entries) % row_size != 0:
             raise ValueError('Provided entries cannot be evenly split into rows of size `row_size`')
 
@@ -56,19 +63,19 @@ class Matrix:
             for j in range(self.cols)
         ]
 
-    def add_row(self, row: list[float]) -> None:
+    def add_row(self, row: list[NumberF]) -> None:
         """Appends a row onto the matrix"""
         if len(row) != self.cols:
             raise ValueError('the size of the new row does not match the order of this matrix')
-        self._inner.append(row)
+        self._inner.append([convert(x) for x in row])
 
-    def add_col(self, col: list[float]) -> None:
+    def add_col(self, col: list[NumberF]) -> None:
         """Appends a column onto the matrix"""
         if len(col) != self.rows:
             raise ValueError('the size of the new row does not match the order of this matrix')
 
         for i in range(self.rows):
-            self._inner[i].append(col[i])
+            self._inner[i].append(convert(col[i]))
 
     def map(self, f: Callable[[int, int], None]) -> None:
         for i in range(self.rows):
@@ -83,7 +90,7 @@ class Matrix:
 
     def __copy__(self) -> Self:
         return self.__class__(
-            [row.copy() for row in self._inner]
+            [list(row) for row in self._inner]
         )
 
     def __add__(self, other: Matrix) -> Self:
@@ -126,10 +133,10 @@ class Matrix:
         self.map(_sub)
         return self
 
-    def __rmul__(self, other: float) -> Self:
+    def __rmul__(self, other: Number) -> Self:
         return self * other
 
-    def __mul__(self, other: float) -> Self:
+    def __mul__(self, other: Number) -> Self:
         if not isinstance(other, Number):
             raise TypeError('Scalar multiplication on matrices can only be performed with scalars; use A @ B instead for matmul')
 
@@ -140,16 +147,16 @@ class Matrix:
 
         return copy
 
-    def __imul__(self, other: float) -> Self:
+    def __imul__(self, other: Number) -> Self:
         if not isinstance(other, Number):
             raise TypeError('Scalar multiplication on matrices can only be performed with scalars; use A @ B instead for matmul')
 
         def _mul(i: int, j: int) -> None:
-            self._inner[i][j] *= other
+            self._inner[i][j] = self._inner[i][j] * other
         self.map(_mul)
         return self
 
-    def __truediv__(self, other: float) -> Self:
+    def __truediv__(self, other: Number) -> Self:
         if not isinstance(other, Number):
             raise TypeError('Division on matrices can only be performed with scalars')
 
@@ -160,7 +167,7 @@ class Matrix:
 
         return copy
 
-    def __itruediv__(self, other: float) -> Self:
+    def __itruediv__(self, other: Number) -> Self:
         if not isinstance(other, Number):
             raise TypeError('Division on matrices can only be performed with scalars')
 
@@ -188,11 +195,21 @@ class Matrix:
     def __neg__(self) -> Self:
         return -1 * self
 
+    def __getitem__(self, i: int) -> list[Fraction]:
+        return self._inner[i]
+
+    def display(self) -> str:
+        return (
+            f'[ {'\n  '.join(
+                f"[{', '.join(str(num) for num in row)}]"
+                for row in self._inner)} ]'
+        )
+
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__} [{self.rows}x{self.cols}] inner={self._inner}>'
+        return f'<{self.__class__.__name__} [{self.rows}x{self.cols}] inner={self.display()}>'
 
     def __str__(self) -> str:
-        return str(self._inner)
+        return self.display()
 
     def __eq__(self, other: Matrix) -> bool:
         if not isinstance(other, Matrix):
