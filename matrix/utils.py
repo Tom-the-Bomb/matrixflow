@@ -1,32 +1,30 @@
-from abc import ABC, abstractmethod
-
-from typing import Self, TypeAlias
-from fractions import Fraction
 
 __all__ = (
-    'convert',
-    'Base',
     'Number',
     'NumberF',
+    'convert',
 )
 
+from typing import TypeAlias
+from fractions import Fraction
+
 Number: TypeAlias = int | Fraction
+"""Test1"""
 NumberF: TypeAlias = Number | float
+"""Test2"""
 
 def convert(x: NumberF) -> Fraction:
+    """
+    Converts input numbers to ``Fraction`` if needed
+
+    Parameters
+    ----------
+    x : :class:`int` | :class:`float` | :obj:`~fractions.Fraction`
+        The number to convert
+
+    Returns
+    -------
+    :class:`Fraction`
+        The converted fraction
+    """
     return x if isinstance(x, Fraction) else Fraction(str(x))
-
-class Base(ABC):
-    __slots__ = ('_inner')
-
-    @abstractmethod
-    def display(self) -> str:
-        ...
-
-    @abstractmethod
-    def map(self, f) -> None:
-        ...
-
-    @abstractmethod
-    def copy(self) -> Self:
-        ...

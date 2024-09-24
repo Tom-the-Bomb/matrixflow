@@ -1,10 +1,10 @@
+"""A library providing implementations for basic algebraic ``matrix`` and ``vector`` operations"""
 
-from .matrix import Matrix
-from .vector import Vector
-from .square_matrix import SquareMatrix
+from .matrix import *
+from .vector import *
+from .errors import *
 
 __all__ = (
     'Matrix',
     'Vector',
-    'SquareMatrix',
 )
