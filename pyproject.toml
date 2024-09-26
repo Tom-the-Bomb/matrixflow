@@ -1,11 +1,17 @@
 [project]
 name = "matrix-py"
+version = "0.1.0"
 authors = [
     {name = "Tom-the-Bomb", email = "me@tomthebomb.dev"}
 ]
 description = "A basic library implementing basic matrix and vector operations"
 license = {file = "LICENSE"}
+readme = "README.md"
 requires-python = ">=3.10"
+keywords = ["vector", "matrix", "math"]
+classifiers = [
+    "Programming Language :: Python"
+]
 
 [tool.pyright]
 typeCheckingMode = "strict"

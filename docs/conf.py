@@ -24,7 +24,6 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinxext.opengraph',
     'sphinx_copybutton',
-    'sphinx_toolbox.more_autodoc.overloads',
 ]
 
 napoleon_google_docstring = False
@@ -35,7 +34,6 @@ autodoc_member_order = 'bysource'
 autodoc_default_options = {
     'exclude-members': '__init__, __hash__',
 }
-
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
