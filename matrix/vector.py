@@ -6,7 +6,6 @@ from typing import Any, Self, Sequence, Callable, overload
 from fractions import Fraction
 from math import sin, cos, acos
 
-from .errors import *
 from .utils import *
 
 class Vector:
@@ -14,12 +13,12 @@ class Vector:
 
     Parameters
     ----------
-    entries: Sequence[:class:`int` | :class:`float` | :obj:`~fractions.Fraction`]
-        The raw entries to initialize the matrix with
+    entries :
+        The raw entries to initialize the vector with
     """
     __slots__ = ('__inner',)
 
-    def __init__(self, entries: Sequence[NumberF]) -> None:
+    def __init__(self, entries: Sequence[Number]) -> None:
         self.__inner = [
             convert(entry) for entry in entries
         ]
@@ -41,7 +40,7 @@ class Vector:
         return cls([0] * n)
 
     @classmethod
-    def from_polar(cls, r: NumberF, theta: NumberF) -> Self:
+    def from_polar(cls, r: Number, theta: Number) -> Self:
         r"""Creates a vector of length 2: :math:`\begin{pmatrix}x\\y\end{pmatrix}`
         based on the provided polar coordinates: :math:`\left(r,\theta\right)`
 
@@ -63,7 +62,7 @@ class Vector:
         ])
 
     @classmethod
-    def from_spherical(cls, rho: NumberF, theta: NumberF, phi: NumberF) -> Self:
+    def from_spherical(cls, rho: Number, theta: Number, phi: Number) -> Self:
         r"""Creates a vector of length 3: :math:`\begin{pmatrix}x\\y\\z\end{pmatrix}`
         based on the provided spherical coordinates: :math:`\left(\rho,\theta,\phi\right)`
 
@@ -96,6 +95,21 @@ class Vector:
     def inner(self) -> list[Fraction]:
         """Returns a reference to the internal list representation of this vector"""
         return self.__inner
+
+    def is_same_order(self, other: Vector) -> bool:
+        """Returns ``True`` if this vector is of the same order as ``other``, else ``False``
+
+        Parameters
+        ----------
+        other :
+           The other vector to compare to
+
+        Returns
+        -------
+        :class:`bool`
+            Whether or not the vectors are of the same order
+        """
+        return self.length == other.length
 
     def norm(self, p: int) -> float:
         r"""Computes the ``p-th`` norm of this vector :math:`\vec{a}`
@@ -151,7 +165,8 @@ class Vector:
     def project(self, other: Vector) -> Vector:
         r"""The vector projection :math:`\vec{a_1}` of this vector :math:`\vec{a}` onto ``other`` :math:`\vec{b}`
 
-        :math:`\vec{a_1}=\left(||\vec{a}||\cos\theta\right)\hat{b}`
+        :math:`\vec{a_1}=\left(||\vec{a}||\cos\theta\right)\hat{b}={\frac{\vec{a}\cdot\vec{b}}{||\vec{b}||}}\hat{b}`
+        (The scalar projection is also the dot product scaled down by the magnitude of :math`\vec{b}`)
 
         Parameters
         ----------
@@ -200,6 +215,9 @@ class Vector:
     def dot(self, other: Vector) -> Fraction:
         r"""Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
 
+        :math:`\vec{a}\cdot\vec{b}=||\vec{a}||||\vec{b}||\cos\theta`
+        which is also the scalar projection of this vector times the magnitude of :math:`\vec{b}`
+
         Parameters
         ----------
         other :
@@ -230,11 +248,10 @@ class Vector:
 
         Raises
         ------
-        :class:`ValueError`
+        :class:`AssertionError`
             Attemped cross product with either empty vectors or vectors of dimensionality greater than :math:`\mathbb{R}^3`
         """
-        if self.length < 1 or self.length > 3:
-            raise ValueError('Cross product can only be computed in R^3 space')
+        assert 1 <= self.length <= 3, 'Cross product can only be computed in R^3 space'
 
         ax, ay, az = self.__inner + [0] * (3 - self.length)
         bx, by, bz = other.__inner + [0] * (3 - other.length)
@@ -251,7 +268,9 @@ class Vector:
         Parameters
         ----------
         f :
-           The function to map over the elements
+            The function to apply over the elements
+            It will take in the current element ``i``
+            and should not return anything as it maps in-place
         """
         for i in range(self.length):
             f(i)
@@ -267,7 +286,7 @@ class Vector:
         return self.__copy__()
 
     def display(self) -> str:
-        """Returns a formatted, displayable string represenation of this vector
+        """Returns a formatted, displayable string representation of this vector
 
         Returns
         -------
@@ -291,11 +310,10 @@ class Vector:
 
         Raises
         ------
-        :class:`ValueError`
+        :class:`AssertionError`
             attempted to add vectors of different lengths
         """
-        if self.length != other.length:
-            raise ValueError('Only same length vectors can be added')
+        assert self.is_same_order(other), 'This operation requires operand vectors to be of the same order'
 
         return Vector([
             a + b for a, b in zip(self.__inner, other.__inner)
@@ -316,11 +334,10 @@ class Vector:
 
         Raises
         ------
-        :class:`ValueError`
+        :class:`AssertionError`
             attempted to add vectors of different lengths
         """
-        if self.length != other.length:
-            raise ValueError('Only same length vectors can be added')
+        assert self.is_same_order(other), 'This operation requires operand vectors to be of the same order'
 
         for i in range(self.length):
             self.__inner[i] += other.__inner[i]
@@ -341,11 +358,10 @@ class Vector:
 
         Raises
         ------
-        :class:`ValueError`
+        :class:`AssertionError`
             attempted to subtract vectors of different lengths
         """
-        if self.length != other.length:
-            raise ValueError('Only same length vectors can be subtracted')
+        assert self.is_same_order(other), 'This operation requires operand vectors to be of the same order'
 
         return Vector([
             a - b for a, b in zip(self.__inner, other.__inner)
@@ -366,11 +382,10 @@ class Vector:
 
         Raises
         ------
-        :class:`ValueError`
+        :class:`AssertionError`
             attempted to subtract vectors of different lengths
         """
-        if self.length != other.length:
-            raise ValueError('Only same length vectors can be subtracted')
+        assert self.is_same_order(other), 'This operation requires operand vectors to be of the same order'
 
         for i in range(self.length):
             self.__inner[i] -= other.__inner[i]
@@ -379,6 +394,9 @@ class Vector:
     @overload
     def __rmul__(self, other: Vector) -> Fraction:
         r"""Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
+
+        :math:`\vec{a}\cdot\vec{b}=||\vec{a||||\vec{b}||\cos\theta`
+        which is also the scalar projection of this vector times the magnitude of :math:`\vec{b}`
 
         Parameters
         ----------
@@ -392,7 +410,7 @@ class Vector:
         """
 
     @overload
-    def __rmul__(self, other: NumberF) -> Self:
+    def __rmul__(self, other: Number) -> Self:
         r"""Computes a new vector that is this vector :math:`\vec{a}` scaled up by a factor of ``other`` :math:`k`
 
         Parameters
@@ -410,6 +428,9 @@ class Vector:
     def __mul__(self, other: Vector) -> Fraction:
         r"""Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
 
+        :math:`\vec{a}\cdot\vec{b}=||\vec{a||||\vec{b}||\cos\theta`
+        which is also the scalar projection of this vector times the magnitude of :math:`\vec{b}`
+
         Parameters
         ----------
         other :
@@ -422,7 +443,7 @@ class Vector:
         """
 
     @overload
-    def __mul__(self, other: NumberF) -> Self:
+    def __mul__(self, other: Number) -> Self:
         r"""Computes a new vector that is this vector :math:`\vec{a}` scaled up by a factor of ``other`` :math:`k`
 
         Parameters
@@ -440,6 +461,9 @@ class Vector:
     def __imul__(self, other: Vector) -> Fraction:
         r"""Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
 
+        :math:`\vec{a}\cdot\vec{b}=||\vec{a||||\vec{b}||\cos\theta`
+        which is also the scalar projection of this vector times the magnitude of :math:`\vec{b}`
+
         Parameters
         ----------
         other :
@@ -452,7 +476,7 @@ class Vector:
         """
 
     @overload
-    def __imul__(self, other: NumberF) -> Self:
+    def __imul__(self, other: Number) -> Self:
         r"""Scales this vector :math:`\vec{a}` up by a factor of ``other`` :math:`k`
 
         Parameters
@@ -466,11 +490,11 @@ class Vector:
             The scaled vector: :math:`k\vec{a}`
         """
 
-    def __rmul__(self, other: NumberF | Vector) -> Self | Fraction:
+    def __rmul__(self, other: Number | Vector) -> Self | Fraction:
         return self * other
 
-    def __mul__(self, other: NumberF | Vector) -> Self | Fraction:
-        if isinstance(other, NumberF):
+    def __mul__(self, other: Number | Vector) -> Self | Fraction:
+        if isinstance(other, Number):
             copy = self.copy()
             def _mul(i: int) -> None:
                 copy.__inner[i] *= convert(other)
@@ -480,8 +504,8 @@ class Vector:
         else:
             return self.dot(other)
 
-    def __imul__(self, other: NumberF | Vector) -> Self | Fraction:
-        if isinstance(other, NumberF):
+    def __imul__(self, other: Number | Vector) -> Self | Fraction:
+        if isinstance(other, Number):
             def _mul(i: int) -> None:
                 self.__inner[i] *= convert(other)
             self.map(_mul)
@@ -491,7 +515,7 @@ class Vector:
         else:
             return self.dot(other)
 
-    def __truediv__(self, other: NumberF) -> Self:
+    def __truediv__(self, other: Number) -> Self:
         r"""Computes a new vector that is this vector :math:`\vec{a}` scaled down by a factor of ``other`` :math:`k`
 
         Parameters
@@ -511,7 +535,7 @@ class Vector:
 
         return copy
 
-    def __itruediv__(self, other: NumberF) -> Self:
+    def __itruediv__(self, other: Number) -> Self:
         r"""Scales this vector :math:`\vec{a}` down by a factor of ``other`` :math:`k`
 
         Parameters
@@ -532,6 +556,8 @@ class Vector:
     def __matmul__(self, other: Vector) -> Vector:
         r"""Computes the orthogonal cross product vector of this vector :math:`\vec{a}`and ``other`` :math:`\vec{b}`
 
+        see: :meth:`cross`
+
         Parameters
         ----------
         other :
@@ -544,10 +570,8 @@ class Vector:
 
         Raises
         ------
-        :class:`TypeError`
-            Attempted cross product on a non-vector
-        :class:`InvalidCrossProduct`
-            Attemped cross product with vectors of dimensionality greater than 3
+        :class:`AssertionError`
+            Attemped cross product with either empty vectors or vectors of dimensionality greater than :math:`\mathbb{R}^3`
         """
         return self.cross(other)
 
@@ -583,6 +607,8 @@ class Vector:
 
     def __abs__(self) -> float:
         """Computes the magnitude of this vector
+
+        See: :meth:`magnitude`
 
         Returns
         -------

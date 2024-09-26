@@ -2,7 +2,6 @@
 
 from .matrix import *
 from .vector import *
-from .errors import *
 
 __all__ = (
     'Matrix',

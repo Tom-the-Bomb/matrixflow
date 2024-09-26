@@ -1,4 +1,4 @@
 
 # Matrix.py
 
-A simple library with basic mathematical matrix and vector operations
+A simple library with implementations for basic mathematical `matrix` and `vector` operations

@@ -1,30 +1,25 @@
 
 __all__ = (
     'Number',
-    'NumberF',
     'convert',
 )
 
 from typing import TypeAlias
 from fractions import Fraction
 
-Number: TypeAlias = int | Fraction
-"""Test1"""
-NumberF: TypeAlias = Number | float
-"""Test2"""
+Number: TypeAlias = int | float | Fraction
 
-def convert(x: NumberF) -> Fraction:
-    """
-    Converts input numbers to ``Fraction`` if needed
+def convert(x: Number) -> Fraction:
+    """Converts input numbers to :obj`~fractions.Fraction` if needed
 
     Parameters
     ----------
-    x : :class:`int` | :class:`float` | :obj:`~fractions.Fraction`
-        The number to convert
+    x :
+        The number to process and convert
 
     Returns
     -------
-    :class:`Fraction`
+    :obj`~fractions.Fraction`
         The converted fraction
     """
     return x if isinstance(x, Fraction) else Fraction(str(x))

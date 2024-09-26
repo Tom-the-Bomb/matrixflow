@@ -8,8 +8,6 @@ Matrix-py documentation
 
    Matrix <matrix.rst>
    Vector <vector.rst>
-   Errors <errors.rst>
-   Utils <utils.rst>
 
 Indices and tables
 ==================
