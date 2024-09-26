@@ -82,7 +82,7 @@ class Matrix:
         Returns
         -------
         :obj:`~typing.Self`
-            The created zero matrix: :math:`\mathbf{O}`
+            The created zero matrix: :math:`\mathbf{0}`
         """
         return cls(
             [[0] * cols for _ in range(rows)]

@@ -17,6 +17,7 @@ class Vector:
         The raw entries to initialize the vector with
     """
     __slots__ = ('__inner',)
+    __inner: list[Fraction]
 
     def __init__(self, entries: Sequence[Number]) -> None:
         self.__inner = [
@@ -118,7 +119,7 @@ class Vector:
 
         Parameters
         ----------
-        p : int
+        p :
             The degree of the vector norm
 
         Returns

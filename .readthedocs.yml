@@ -9,7 +9,7 @@ build:
   tools:
     python: "3"
 
-formats: all
+formats: []
 
 python:
   install:
