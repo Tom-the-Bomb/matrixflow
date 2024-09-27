@@ -1,7 +1,10 @@
 
 from __future__ import annotations
 
-__all__ = ('Matrix',)
+__all__ = (
+    'solve_linear_system',
+    'Matrix',
+)
 
 from typing import Any, Self, Sequence, Callable
 from fractions import Fraction
@@ -9,6 +12,44 @@ from math import sin, cos
 
 from .vector import Vector
 from .utils import *
+
+def solve_linear_system(coefficients: list[list[Number]], b: list[Number]) -> list[Fraction]:
+    r"""Solves a system of ``n`` linear equations with ``n`` variables: :math:`\mathbf{A}x=\mathbf{b}`
+
+    We return :math:`x` by computing :math:`x=\mathbf{A}^{-1}\mathbf{b}`
+
+    Parameters
+    ----------
+    coefficients :
+        The coefficients of the respective unknowns in the system: :math:`\mathbf{A}`
+    b :
+        The corresponding values that each equation is set equal to: :math:`\mathbf{b}`
+
+    Returns
+    -------
+    list[:obj:`~fractions.Fraction`]
+        An array of solutions with values corresponding to the respective unknowns
+
+    Examples
+    --------
+    >>> solve_linear_system(
+        [[2, 3], [5, -6]],
+        [4, -4]
+    )
+    [Fraction(4, 9), Fraction(28, 27)]
+
+    This is equivalent to:
+
+    :math:`\begin{cases}2x+3y=4\\5x-6y=-4\end{cases}`
+
+    :math:`\therefore x=\frac{4}{9}, y=\frac{28}{27}`
+    """
+    A = Matrix(coefficients)
+    B = Matrix([b])
+    B.transpose()
+    A.invert()
+
+    return (A @ B).transposed()[0]
 
 class Matrix:
     """An implementation for a 2D mathematical matrix

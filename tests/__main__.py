@@ -35,6 +35,17 @@ def test_matrices() -> None:
     assert (A @ B).trace() == (B @ A).trace()
     assert A ** 3 == A @ A @ A
 
+def test_linear_system() -> None:
+    print(solve_linear_system(
+        [
+            [2, 3, 5, 6],
+            [1, 2, -3, 5],
+            [5, 6, 9, -1],
+            [9, 1.5, 3, -2],
+        ],
+        [5, 6, 9, -2],
+    ))
+
 def test_vectors() -> None:
     u = Vector([2, 2, -2])
     v = Vector([-2, 3, -5])
@@ -59,4 +70,5 @@ def test_vectors() -> None:
 
 if __name__ == '__main__':
     test_matrices()
+    test_linear_system()
     test_vectors()

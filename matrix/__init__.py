@@ -4,6 +4,7 @@ from .matrix import *
 from .vector import *
 
 __all__ = (
+    'solve_linear_system',
     'Matrix',
     'Vector',
 )

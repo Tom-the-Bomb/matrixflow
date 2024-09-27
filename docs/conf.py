@@ -35,6 +35,10 @@ autodoc_default_options = {
     'exclude-members': '__init__, __hash__',
 }
 
+intersphinx_mapping = {
+    'py': ('https://docs.python.org/3', None),
+}
+
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
