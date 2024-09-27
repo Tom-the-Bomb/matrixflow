@@ -1,4 +1,6 @@
 
+from math import pi
+
 from matrix import *
 
 def test_matrices() -> None:
@@ -31,6 +33,7 @@ def test_matrices() -> None:
     assert A @ ~A == I
     assert (A @ B).det() == A.det() * B.det()
     assert (A @ B).trace() == (B @ A).trace()
+    assert A ** 3 == A @ A @ A
 
 def test_vectors() -> None:
     u = Vector([2, 2, -2])
@@ -50,6 +53,9 @@ def test_vectors() -> None:
     )
     assert u @ u == o
     assert u @ (v @ w) == (u * w) * v - (u * v) * w
+    assert u.project(v) + u.reject(v) == u
+    assert u * v / v.magnitude() == u.project(v).magnitude()
+    assert (u @ v).angle_between(u) == (u @ v).angle_between(v) == pi / 2
 
 if __name__ == '__main__':
     test_matrices()

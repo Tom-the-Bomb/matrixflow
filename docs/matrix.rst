@@ -4,6 +4,6 @@ Matrix
 Module contents
 ---------------
 
-.. automodule:: matrix.matrix
+.. autoclass:: matrix.Matrix
    :members:
    :special-members:

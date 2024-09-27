@@ -13,7 +13,7 @@ class Vector:
 
     Parameters
     ----------
-    entries :
+    entries : ~typing.Sequence[int | float | ~fractions.Fraction]
         The raw entries to initialize the vector with
     """
     __slots__ = ('__inner',)
@@ -159,15 +159,16 @@ class Vector:
         Returns
         -------
         :class:`float`
-            The magnitude of this vector: :math:`||\vec{a}||`
+            The magnitude of this vector: :math:`\left\|\vec{a}\right\|`
         """
         return self.norm(2)
 
     def project(self, other: Vector) -> Vector:
         r"""The vector projection :math:`\vec{a_1}` of this vector :math:`\vec{a}` onto ``other`` :math:`\vec{b}`
 
-        :math:`\vec{a_1}=\left(||\vec{a}||\cos\theta\right)\hat{b}={\frac{\vec{a}\cdot\vec{b}}{||\vec{b}||}}\hat{b}`
-        (The scalar projection is also the dot product scaled down by the magnitude of :math`\vec{b}`)
+        :math:`\vec{a_1}=\left(\left\|\vec{a}\right\|\cos\theta\right)\hat{b}={\frac{\vec{a}\cdot\vec{b}}{\left\|\vec{b}\right\|}}\hat{b}`
+
+        (The scalar projection is also the dot product scaled down by the magnitude of :math:`\vec{b}`)
 
         Parameters
         ----------
@@ -216,7 +217,8 @@ class Vector:
     def dot(self, other: Vector) -> Fraction:
         r"""Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
 
-        :math:`\vec{a}\cdot\vec{b}=||\vec{a}||||\vec{b}||\cos\theta`
+        :math:`\vec{a}\cdot\vec{b}=\left\|\vec{a}\right\|\left\|\vec{b}\right\|\cos\theta`
+
         which is also the scalar projection of this vector times the magnitude of :math:`\vec{b}`
 
         Parameters
@@ -396,7 +398,7 @@ class Vector:
     def __rmul__(self, other: Vector) -> Fraction:
         r"""Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
 
-        :math:`\vec{a}\cdot\vec{b}=||\vec{a||||\vec{b}||\cos\theta`
+        :math:`\vec{a}\cdot\vec{b}=\left\|\vec{a}\right\|\left\|\vec{b}\right\|\cos\theta`
         which is also the scalar projection of this vector times the magnitude of :math:`\vec{b}`
 
         Parameters
@@ -429,7 +431,7 @@ class Vector:
     def __mul__(self, other: Vector) -> Fraction:
         r"""Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
 
-        :math:`\vec{a}\cdot\vec{b}=||\vec{a||||\vec{b}||\cos\theta`
+        :math:`\vec{a}\cdot\vec{b}=\left\|\vec{a}\right\|\left\|\vec{b}\right\|\cos\theta`
         which is also the scalar projection of this vector times the magnitude of :math:`\vec{b}`
 
         Parameters
@@ -462,7 +464,7 @@ class Vector:
     def __imul__(self, other: Vector) -> Fraction:
         r"""Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
 
-        :math:`\vec{a}\cdot\vec{b}=||\vec{a||||\vec{b}||\cos\theta`
+        :math:`\vec{a}\cdot\vec{b}=\left\|\vec{a}\right\|\left\|\vec{b}\right\|\cos\theta`
         which is also the scalar projection of this vector times the magnitude of :math:`\vec{b}`
 
         Parameters
@@ -492,9 +494,43 @@ class Vector:
         """
 
     def __rmul__(self, other: Number | Vector) -> Self | Fraction:
+        r"""Overloaded method:
+
+        see: :meth:`__mul__`
+
+        Parameters
+        ----------
+        other : int | float | ~fractions.Fraction | Vector
+            The right operand in the scalar multiplication | scalar dot product
+
+        Returns
+        -------
+        :obj:`~typing.Self` | :obj:`~fractions.Fraction`
+            The product of the scalar multiplication: :math:`k\vec{a}` | scalar dot product: :math:`\vec{a}\cdot\vec{b}`
+        """
         return self * other
 
     def __mul__(self, other: Number | Vector) -> Self | Fraction:
+        r"""Overloaded method:
+
+        #. Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
+
+            :math:`\vec{a}\cdot\vec{b}=\left\|\vec{a}\right\|\left\|\vec{b}\right\|\cos\theta`
+
+            which is also the scalar projection of this vector times the magnitude of :math:`\vec{b}`
+
+        #. Computes a new vector that is this vector :math:`\vec{a}` scaled up by a factor of ``other`` :math:`k`
+
+        Parameters
+        ----------
+        other : int | float | ~fractions.Fraction | Vector
+            The right operand in the scalar multiplication | scalar dot product
+
+        Returns
+        -------
+        :obj:`~typing.Self` | :obj:`~fractions.Fraction`
+            The product of the scalar multiplication: :math:`k\vec{a}` | scalar dot product: :math:`\vec{a}\cdot\vec{b}`
+        """
         if isinstance(other, Number):
             copy = self.copy()
             def _mul(i: int) -> None:
@@ -506,6 +542,22 @@ class Vector:
             return self.dot(other)
 
     def __imul__(self, other: Number | Vector) -> Self | Fraction:
+        r"""Overloaded method:
+
+        #. Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`: see: :meth:`__mul__`
+
+        #. Scales this vector :math:`\vec{a}` up by a factor of ``other`` :math:`k`
+
+        Parameters
+        ----------
+        other : int | float | ~fractions.Fraction | Vector
+            The scaled vector | scalar dot product
+
+        Returns
+        -------
+        :obj:`~typing.Self` | :obj:`~fractions.Fraction`
+            The scaled vector: :math:`k\vec{a}` | scalar dot product: :math:`\vec{a}\cdot\vec{b}`
+        """
         if isinstance(other, Number):
             def _mul(i: int) -> None:
                 self.__inner[i] *= convert(other)
@@ -551,6 +603,44 @@ class Vector:
         """
         def _div(i: int) -> None:
             self.__inner[i] /= convert(other)
+        self.map(_div)
+        return self
+
+    def __floordiv__(self, other: Number) -> Self:
+        r"""Computes a new vector that is this vector :math:`\vec{a}` scaled down by a factor of ``other`` :math:`k` and then **floored**
+
+        Parameters
+        ----------
+        other :
+            The scalar to scale this vector down by
+
+        Returns
+        -------
+        :class:`Vector`
+            The scaled down vector: :math:`\lfloor\frac{1}{k}\rfloor\vec{a}`
+        """
+        copy = self.copy()
+        def _div(i: int) -> None:
+            copy.__inner[i] = Fraction(copy.__inner[i] // other)
+        copy.map(_div)
+
+        return copy
+
+    def __ifloordiv__(self, other: Number) -> Self:
+        r"""Scales this vector :math:`\vec{a}` down by a factor of ``other`` :math:`k` and then **floored**
+
+        Parameters
+        ----------
+        other :
+            The scalar to scale this vector down by
+
+        Returns
+        -------
+        :class:`Vector`
+            The scaled down vector: :math:`\lfloor\frac{1}{k}\rfloor\vec{a}`
+        """
+        def _div(i: int) -> None:
+            self.__inner[i] = Fraction(self.__inner[i] // other)
         self.map(_div)
         return self
 

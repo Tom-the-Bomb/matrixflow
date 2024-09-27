@@ -4,6 +4,6 @@ Vector
 Module contents
 ---------------
 
-.. automodule:: matrix.vector
+.. autoclass:: matrix.Vector
    :members:
    :special-members:

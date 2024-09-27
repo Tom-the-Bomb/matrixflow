@@ -5,6 +5,7 @@ __all__ = ('Matrix',)
 
 from typing import Any, Self, Sequence, Callable
 from fractions import Fraction
+from math import sin, cos
 
 from .vector import Vector
 from .utils import *
@@ -14,7 +15,7 @@ class Matrix:
 
     Parameters
     ----------
-    entries :
+    entries : ~typing.Sequence[~typing.Sequence[int | float | ~fractions.Fraction]]
         The raw entries to initialize the matrix with
 
     Raises
@@ -105,6 +106,119 @@ class Matrix:
             for i in range(n)
         ])
 
+    @classmethod
+    def shear_2d(cls, x_factor: Number = 0, y_factor: Number = 0) -> Self:
+        """Creates a linear map that performs a **shear**
+
+        A shear displaces each point in a fixed direction by an fixed amount relative to a fixed line (i.e. the axes)
+
+        Parameters
+        ----------
+        x_factor :
+            The horizontal shear factor on the :math:`x` basis vector, by default ``0``
+        y_factor :
+            The vertical shear factor on the :math:`y` basis vector, by default ``0``
+
+        Returns
+        -------
+        :obj:`~typing.Self`
+           The created linear map
+        """
+        return cls([
+            [1, y_factor],
+            [x_factor, 1],
+        ])
+
+    @classmethod
+    def reflect_x(cls) -> Self:
+        """Creates a linear map that performs a vertical reflection across the horizontal (x-axis)
+
+        Returns
+        -------
+        :obj:`~typing.Self`
+           The created linear map
+        """
+        return cls([
+            [1, 0],
+            [0, -1],
+        ])
+
+    @classmethod
+    def reflect_y(cls) -> Self:
+        """Creates a linear map that performs a horizontal reflection across the vertical (y-axis)
+
+        Returns
+        -------
+        :obj:`~typing.Self`
+           The created linear map
+        """
+        return cls([
+            [-1, 0],
+            [0, 1],
+        ])
+
+    @classmethod
+    def squeeze_map_2d(cls, r: Number = 1) -> Self:
+        """Creates a linear map that performs a **squeeze map**
+
+        A squeeze map is a transformation that preserves euclidean area of regions in the cartesian plane,
+        but is not a **rotation** or **shear**
+
+        Parameters
+        ----------
+        r :
+            The squeeze factor, by default ``1``
+
+        Returns
+        -------
+        :obj:`~typing.Self`
+           The created linear map
+        """
+        return cls([
+            [r, 0],
+            [0, 1/r],
+        ])
+
+    @classmethod
+    def scale_2d(cls, k: Number = 1) -> Self:
+        """Creates a linear map that performs a **uniform scale**
+
+        A uniform scale enlarges or shrinks the regions in the cartesian plane by the same factor in all directions
+
+        Parameters
+        ----------
+        k :
+            The scale factor, by default ``1``
+
+        Returns
+        -------
+        :obj:`~typing.Self`
+           The created linear map
+        """
+        return cls([
+            [k, 0],
+            [0, k],
+        ])
+
+    @classmethod
+    def rotate_2d(cls, theta: Number = 0) -> Self:
+        """Creates a linear map that performs a **rotation**
+
+        Parameters
+        ----------
+        theta :
+            The angle of rotation in radians, by default ``0``
+
+        Returns
+        -------
+        :obj:`~typing.Self`
+           The created linear map
+        """
+        return cls([
+            [cos(theta), -sin(theta)],
+            [sin(theta), cos(theta)],
+        ])
+
     @property
     def rows(self) -> int:
         """Returns the number of ``rows`` this matrix has"""
@@ -131,6 +245,19 @@ class Matrix:
             [self.__inner[i][j] for i in range(self.rows)]
             for j in range(self.cols)
         ]
+
+    def transposed(self) -> Matrix:
+        r"""Computes a new matrix that is this matrix :math:`\mathbf{A}`'s transpose: switches the ``rows`` with the ``columns``
+
+        Returns
+        -------
+        :class:`Matrix`
+            The transposed matrix: :math:`\mathbf{A}^\intercal`
+        """
+        return Matrix([
+            [self.__inner[i][j] for i in range(self.rows)]
+            for j in range(self.cols)
+        ])
 
     def add_row(self, row: Sequence[Number]) -> None:
         """Appends a row ``row`` onto the end of this matrix
@@ -206,6 +333,86 @@ class Matrix:
             Whether or not the matrices are of the same order
         """
         return self.rows == other.rows and self.cols == other.cols
+
+    def is_singular(self) -> bool:
+        r"""Returns ``True`` if this matrix :math:`\mathbf{A}` is square and is **singular**:
+        :math:`\mathbf{A}^{-1}` does not exist, else ``False``
+
+        Returns
+        -------
+        :class:`bool`
+            Whether or not this matrix is square and is singular
+        """
+        return self.is_square() and self.det() == 0
+
+    def is_symmetric(self) -> bool:
+        r"""Returns ``True`` if this matrix :math:`\mathbf{A}` is **symmetric**:
+        :math:`\mathbf{A}=\mathbf{A}^\intercal`, else ``False``
+
+        Returns
+        -------
+        :class:`bool`
+            Whether or not this matrix is symmetric
+        """
+        return self == self.transposed()
+
+    def is_skew_symmetric(self) -> bool:
+        r"""Returns ``True`` if this matrix :math:`\mathbf{A}` is **skew-symmetric**
+        :math:`\mathbf{A}=-\mathbf{A}^\intercal`, else ``False``
+
+        Returns
+        -------
+        :class:`bool`
+            Whether or not this matrix is skew-symmetric
+        """
+        return self == -self.transposed()
+
+    def is_orthogonal(self) -> bool:
+        r"""Returns ``True`` if this matrix :math:`\mathbf{A}` is **orthogonal**:
+        :math:`\mathbf{A}^intercal=\mathbf{A}^{-1}`, else ``False``
+
+        Returns
+        -------
+        :class:`bool`
+            Whether or not this matrix is orthogonal
+        """
+        try:
+            return self.transposed() == self.inverted()
+        except (ValueError, AssertionError):
+            return False
+
+    def is_upper_triangular(self) -> bool:
+        r"""Returns ``True`` if this matrix is **upper-triangular**:
+        meaning all elements *below* the main diagonal are zero.
+
+        Returns
+        -------
+        :class:`bool`
+            Whether or not this matrix is upper-triangular
+        """
+        return all(self.__inner[i][j] == 0 for j in range(self.cols) for i in range(self.rows) if i > j)
+
+    def is_lower_triangular(self) -> bool:
+        r"""Returns ``True`` if this matrix is **lower-triangular**:
+        meaning all elements *above* the main diagonal are zero.
+
+        Returns
+        -------
+        :class:`bool`
+            Whether or not this matrix is lower-triangular
+        """
+        return all(self.__inner[i][j] == 0 for j in range(self.cols) for i in range(self.rows) if i < j)
+
+    def is_diagonal(self) -> bool:
+        r"""Returns ``True`` if this matrix is **lower-triangular**:
+        meaning all elements that are not on the main diagonal are zero.
+
+        Returns
+        -------
+        :class:`bool`
+            Whether or not this matrix is diagonal
+        """
+        return all(self.__inner[i][j] == 0 for j in range(self.cols) for i in range(self.rows) if i == j)
 
     def get_submatrix_of(self, rows: set[int], cols: set[int]) -> Matrix:
         """A submatrix is the matrix obtained by deleting the rows that that have indices in ``rows`` and columns that have indices in ``cols``
@@ -366,8 +573,11 @@ class Matrix:
         ------
         :class:`ValueError`
             This matrix singular: :math:`\det(\mathbf{A})=0` (inverse does not exist)
+        :class:`AssertionError`
+            This matrix is not square
         """
         assert self.is_square(), 'This operation requires the matrix to be square'
+
         if (det := self.det()) != 0:
             return self.adj() / det
         raise ValueError('This matrix is singular: inverse does not exist')
@@ -386,6 +596,8 @@ class Matrix:
         ------
         :class:`ValueError`
             This matrix singular: :math:`\det(\mathbf{A})=0` (inverse does not exist)
+        :class:`AssertionError`
+            This matrix is not square
         """
         assert self.is_square(), 'This operation requires the matrix to be square'
 
@@ -582,7 +794,7 @@ class Matrix:
         Parameters
         ----------
         other :
-            The scalar to compute the divisions
+            The scalar divisor
 
         Returns
         -------
@@ -602,7 +814,7 @@ class Matrix:
         Parameters
         ----------
         other :
-            The scalar to compute the divisions
+            The scalar divisor
 
         Returns
         -------
@@ -614,9 +826,47 @@ class Matrix:
         self.map(_div)
         return self
 
+    def __floordiv__(self, other: Number) -> Self:
+        r"""Computes a new matrix that is the result of scalar **floor** division of ``other`` :math:`k` on this matrix :math:`\mathbf{A}`
+
+        Parameters
+        ----------
+        other :
+            The scalar divisor
+
+        Returns
+        -------
+        :class:`Matrix`
+            The scalar divison matrix: :math:`\lfloor\frac{1}{k}\rfloor\mathbf{A}`
+        """
+        copy = self.copy()
+        def _div(i: int, j: int) -> None:
+            copy.__inner[i][j] = Fraction(copy.__inner[i][j] // other)
+        copy.map(_div)
+
+        return copy
+
+    def __ifloordiv__(self, other: Number) -> Self:
+        r"""Scalar **floor** divides ``other`` :math:`k` on this matrix :math:`\mathbf{A}` (in place)
+
+        Parameters
+        ----------
+        other :
+            The scalar divisor
+
+        Returns
+        -------
+        :class:`Matrix`
+            The scalar divison matrix: :math:`\lfloor\frac{1}{k}\rfloor\mathbf{A}`
+        """
+        def _div(i: int, j: int) -> None:
+            self.__inner[i][j] = Fraction(self.__inner[i][j] // other)
+        self.map(_div)
+        return self
+
     def __matmul__(self, other: Matrix) -> Matrix:
         r"""Computes a new matrix that is the matrix multiplication between
-        this matrix :math:`\mathbf{A}`(size :mathbf:`m\times n`) and ``other`` :math:`\mathbf{B}` (size `p\times q`)
+        this matrix :math:`\mathbf{A}`(size :math:`m\times n`) and ``other`` :math:`\mathbf{B}` (size `p\times q`)
 
         The operation can only be performed if :math:`n` is equal to :math:`p` and will yield a matrix of size :math:`m\times q`
 
@@ -631,6 +881,12 @@ class Matrix:
         -------
         :class:`Matrix`
             The matrix that is the result of the matrix multiplication
+
+        Raises
+        ------
+        :class:`AssertionError`
+            Unable to compute matrix multiplication:
+            The # of columns in the left matrix does not match the # of rows in the right matrix
         """
         assert self.cols == other.rows, 'The # of columns in the left matrix does not match the # of rows in the right matrix'
 
@@ -642,6 +898,30 @@ class Matrix:
             for j in range(other.cols):
                 product.__inner[i][j] = Vector(self.__inner[i]) * Vector(other_t.__inner[j])
         return product
+
+    def __pow__(self, other: int) -> Matrix:
+        r"""Computes repeated matrix multiplication of this matrix :math:`\mathbf{A}` on itself ``other`` number of times
+
+        Parameters
+        ----------
+        other :
+           The exponent: :math:`n`
+
+        Returns
+        -------
+        :class:`Matrix`
+            The new matrix that is this matrix raised to the power of ``other``: :math:`\mathbf{A}^n`
+
+        Raises
+        ------
+        :class:`AssertionError`
+            Unable to compute matrix multiplication:
+            The # of columns in the left matrix does not match the # of rows in the right matrix
+        """
+        power = Matrix.identity(self.rows)
+        for _ in range(other):
+            power @= self
+        return power
 
     def __pos__(self) -> Self:
         """Unary plus: does nothing as it performs a scalar multiplication of all the elements by :math:`+1`
@@ -717,7 +997,7 @@ class Matrix:
 
         Returns
         -------
-        :obj:`list[~fractions.Fraction]`
+        list[:obj:`~fractions.Fraction`]
             The ``i-th`` row of this vector: :math:`\mathbf{A}_i`
         """
         return self.__inner[i]
