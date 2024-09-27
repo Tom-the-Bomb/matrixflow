@@ -369,7 +369,7 @@ class Matrix:
 
     def is_orthogonal(self) -> bool:
         r"""Returns ``True`` if this matrix :math:`\mathbf{A}` is **orthogonal**:
-        :math:`\mathbf{A}^intercal=\mathbf{A}^{-1}`, else ``False``
+        :math:`\mathbf{A}^\intercal=\mathbf{A}^{-1}`, else ``False``
 
         Returns
         -------
