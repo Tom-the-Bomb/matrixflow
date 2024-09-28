@@ -475,7 +475,15 @@ class Matrix:
         return all(self.__inner[i][j] == 0 for j in range(self.cols) for i in range(self.rows) if i == j)
 
     def get_submatrix_of(self, rows: set[int], cols: set[int]) -> Matrix:
-        """A submatrix is the matrix obtained by deleting the rows that that have indices in ``rows`` and columns that have indices in ``cols``
+        """A submatrix is the matrix obtained by deleting the **rows** that that have indices in the set ``rows``
+        and **columns** that have indices in the set ``cols``
+
+        Parameters
+        ----------
+        rows :
+            The set of rows to exclude
+        cols :
+            The set of columns to excludes
 
         Returns
         -------
@@ -926,11 +934,59 @@ class Matrix:
 
     @overload
     def __matmul__(self, other: Matrix) -> Matrix:
-        ...
+        r"""Computes a new matrix that is the matrix multiplication between
+        this matrix :math:`\mathbf{A}` (size :math:`m\times n`) and ``other`` :math:`\mathbf{B}` (size :math:`p\times q`)
+
+        The operation can only be performed if :math:`n = p` and will yield a matrix of size :math:`m\times q`
+
+        :math:`\mathbf{AB}=\left(\displaystyle\sum_r{\mathbf{A}_{ir}\mathbf{B}_{ij}}\right)_{1\le i,j\lt n}`
+
+        -
+            This also can represent a **composition** of 2 linear maps:
+            :math:`f\circ g=f(g(\vec{v}))` which says apply :math:`g` first, then :math:`f`
+            where this matrix represents the map :math:`f` and ``other`` represents the map :math`g`
+
+        Parameters
+        ----------
+        other :
+            The matrix to perform matrix multiplication with
+
+        Returns
+        -------
+        :class:`Matrix`
+            The matrix that is the result of the matrix multiplication
+
+        Raises
+        ------
+        :class:`AssertionError`
+            Unable to compute matrix multiplication:
+            The # of columns in the left matrix does not match the # of rows in the right matrix
+        """
 
     @overload
     def __matmul__(self, other: Vector) -> Vector:
-        ...
+        r"""Applies the linear transformation that is this matrix :math:`\mathbf{A}` on the vector ``other`` :math:`\vec{v}`:
+
+        The operation can only be performed if :math:`n = \ell(\vec{v})` where :math:`\ell(\vec{v})` denotes the length of the vector
+
+        :math:`\mathrm{T_A}(\vec{v})=\mathbf{A}\vec{v}` yielding an output vector that is the transformed vector
+
+        Parameters
+        ----------
+        other :
+            The vector to apply the linear map on
+
+        Returns
+        -------
+        :class:`Vector`
+            The vector that is the result of the linear map :math:`\mathbf{A}``
+
+        Raises
+        ------
+        :class:`AssertionError`
+            Unable to compute matrix multiplication:
+            The # of columns in the matrix does not match the length of the vector
+        """
 
     def __matmul__(self, other: Matrix | Vector) -> Matrix | Vector:
         r"""Overloaded method:
@@ -944,7 +1000,7 @@ class Matrix:
             :math:`\mathbf{AB}=\left(\displaystyle\sum_r{\mathbf{A}_{ir}\mathbf{B}_{ij}}\right)_{1\le i,j\lt n}`
 
             -
-                This also can represent a linear map **composition**:
+                This also can represent a **composition** of 2 linear maps:
                 :math:`f\circ g=f(g(\vec{v}))` which says apply :math:`g` first, then :math:`f`
                 where this matrix represents the map :math:`f` and ``other`` represents the map :math`g`
 
@@ -953,7 +1009,7 @@ class Matrix:
 
             The operation can only be performed if :math:`n = \ell(\vec{v})` where :math:`\ell(\vec{v})` denotes the length of the vector
 
-            :math:`\mathrm{T_A}(\vec{v})=\mathbf{A}\vec{v}` yielding an output vector that is the transformed vector
+            :math:`\mathrm{T_A}(\vec{v})=\mathbf{A}\vec{v}` yielding a new output vector that is the transformed vector
 
         Parameters
         ----------
