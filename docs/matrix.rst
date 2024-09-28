@@ -4,8 +4,8 @@ Matrix
 Module contents
 ---------------
 
-.. autofunction:: matrix.solve_linear_system
+.. autofunction:: matrixflow.solve_linear_system
 
-.. autoclass:: matrix.Matrix
+.. autoclass:: matrixflow.Matrix
    :members:
    :special-members:

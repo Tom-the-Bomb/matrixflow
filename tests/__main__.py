@@ -1,7 +1,7 @@
 
 from math import pi
 
-from matrix import *
+from matrixflow import *
 
 def test_matrices() -> None:
     A = Matrix([
@@ -45,6 +45,12 @@ def test_linear_system() -> None:
         ],
         [5, 6, 9, -2],
     ))
+
+    v = Vector([1, 2])
+    shear = Matrix.shear_2d(1, 1)
+    reflection = Matrix.reflect_x()
+
+    print(reflection @ shear @ v)
 
 def test_vectors() -> None:
     u = Vector([2, 2, -2])

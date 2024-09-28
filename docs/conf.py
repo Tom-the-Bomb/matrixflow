@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'matrix-py'
+project = 'matrixflow'
 copyright = '2024, Tom-the-Bomb'
 author = 'Tom-the-Bomb'
 release = '0.1.0'

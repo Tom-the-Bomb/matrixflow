@@ -1,5 +1,5 @@
 [project]
-name = "matrix-py"
+name = "matrixflow"
 version = "0.1.0"
 authors = [
     {name = "Tom-the-Bomb", email = "me@tomthebomb.dev"}
@@ -17,14 +17,18 @@ classifiers = [
 typeCheckingMode = "strict"
 
 [project.urls]
-documentation = "https://matrix-py.readthedocs.io/en/latest/"
-homepage = "https://github.com/Tom-the-Bomb/matrix-py"
-repository = "https://github.com/Tom-the-Bomb/matrix-py"
+documentation = "https://matrixflow.readthedocs.io/en/latest/"
+homepage = "https://github.com/Tom-the-Bomb/matrixflow"
+repository = "https://github.com/Tom-the-Bomb/matrixflow"
 
 [project.optional-dependencies]
 docs = [
     "sphinx",
     "furo",
     "sphinxext-opengraph",
-    "sphinx-copybutton"
+    "sphinx-copybutton",
+]
+dev = [
+    "twine",
+    "build",
 ]

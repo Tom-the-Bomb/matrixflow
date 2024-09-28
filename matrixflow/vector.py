@@ -513,7 +513,8 @@ class Vector:
     def __mul__(self, other: Number | Vector) -> Self | Fraction:
         r"""Overloaded method:
 
-        #. Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
+        #.
+            Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
 
             :math:`\vec{a}\cdot\vec{b}=\left\|\vec{a}\right\|\left\|\vec{b}\right\|\cos\theta`
 

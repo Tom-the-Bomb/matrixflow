@@ -6,7 +6,7 @@ __all__ = (
     'Matrix',
 )
 
-from typing import Any, Self, Sequence, Callable
+from typing import Any, Self, Sequence, Callable, overload
 from fractions import Fraction
 from math import sin, cos
 
@@ -30,8 +30,8 @@ def solve_linear_system(coefficients: list[list[Number]], b: list[Number]) -> li
     list[:obj:`~fractions.Fraction`]
         An array of solutions with values corresponding to the respective unknowns
 
-    Examples
-    --------
+    Example
+    -------
     >>> solve_linear_system(
         [[2, 3], [5, -6]],
         [4, -4]
@@ -45,11 +45,10 @@ def solve_linear_system(coefficients: list[list[Number]], b: list[Number]) -> li
     :math:`\therefore x=\frac{4}{9}, y=\frac{28}{27}`
     """
     A = Matrix(coefficients)
-    B = Matrix([b])
-    B.transpose()
     A.invert()
+    B = Vector(b)
 
-    return (A @ B).transposed()[0]
+    return (A @ B).inner
 
 class Matrix:
     """An implementation for a 2D mathematical matrix
@@ -86,9 +85,9 @@ class Matrix:
 
         Parameters
         ----------
-        entries : :class:`Sequence[Number]`
+        entries :
             The flat, 1D sequence containing the entries
-        cols : :class:`int`
+        cols :
             The number of columns of the created matrix
 
         Returns
@@ -107,6 +106,26 @@ class Matrix:
         return cls(
             [entries[i:i + cols] for i in range(0, n, cols)]
         )
+
+    @classmethod
+    def from_columns(cls, columns: Sequence[Sequence[Fraction]]) -> Self:
+        """Creates a new matrix from a list of ``columns`` of the matrix
+
+        * This is useful for creating transformations where ``columns`` directly corresponds to the list of respective transformed basis vectors
+
+        Parameters
+        ----------
+        columns :
+            The list of columns
+
+        Returns
+        -------
+        :obj:`~typing.Self`
+            The created matrix
+        """
+        mat = cls(columns)
+        mat.transpose()
+        return mat
 
     @classmethod
     def zero(cls, rows: int, cols: int) -> Self:
@@ -148,7 +167,7 @@ class Matrix:
         ])
 
     @classmethod
-    def shear_2d(cls, x_factor: Number = 0, y_factor: Number = 0) -> Self:
+    def shear_2d(cls, x_gradient: Number = 0, y_gradient: Number = 0) -> Self:
         """Creates a linear map that performs a **shear**
 
         A shear displaces each point in a fixed direction by an fixed amount relative to a fixed line (i.e. the axes)
@@ -156,9 +175,9 @@ class Matrix:
         Parameters
         ----------
         x_factor :
-            The horizontal shear factor on the :math:`x` basis vector, by default ``0``
+            The horizontal shear gradient on the :math:`x` basis vector, by default ``0``
         y_factor :
-            The vertical shear factor on the :math:`y` basis vector, by default ``0``
+            The vertical shear gradient  on the :math:`y` basis vector, by default ``0``
 
         Returns
         -------
@@ -166,8 +185,8 @@ class Matrix:
            The created linear map
         """
         return cls([
-            [1, y_factor],
-            [x_factor, 1],
+            [1, y_gradient],
+            [x_gradient, 1],
         ])
 
     @classmethod
@@ -905,40 +924,71 @@ class Matrix:
         self.map(_div)
         return self
 
+    @overload
     def __matmul__(self, other: Matrix) -> Matrix:
-        r"""Computes a new matrix that is the matrix multiplication between
-        this matrix :math:`\mathbf{A}`(size :math:`m\times n`) and ``other`` :math:`\mathbf{B}` (size `p\times q`)
+        ...
 
-        The operation can only be performed if :math:`n` is equal to :math:`p` and will yield a matrix of size :math:`m\times q`
+    @overload
+    def __matmul__(self, other: Vector) -> Vector:
+        ...
 
-        :math:`\mathbf{AB}=\left(\displaystyle\sum_r{\mathbf{A}_{ir}\mathbf{B}_{ij}}\right)_{1\le i,j\lt n}`
+    def __matmul__(self, other: Matrix | Vector) -> Matrix | Vector:
+        r"""Overloaded method:
+
+        #.
+            Computes a new matrix that is the matrix multiplication between
+            this matrix :math:`\mathbf{A}` (size :math:`m\times n`) and ``other`` :math:`\mathbf{B}` (size :math:`p\times q`)
+
+            The operation can only be performed if :math:`n = p` and will yield a matrix of size :math:`m\times q`
+
+            :math:`\mathbf{AB}=\left(\displaystyle\sum_r{\mathbf{A}_{ir}\mathbf{B}_{ij}}\right)_{1\le i,j\lt n}`
+
+            -
+                This also can represent a linear map **composition**:
+                :math:`f\circ g=f(g(\vec{v}))` which says apply :math:`g` first, then :math:`f`
+                where this matrix represents the map :math:`f` and ``other`` represents the map :math`g`
+
+        #.
+            Applies the linear transformation that is this matrix :math:`\mathbf{A}` on the vector ``other`` :math:`\vec{v}`:
+
+            The operation can only be performed if :math:`n = \ell(\vec{v})` where :math:`\ell(\vec{v})` denotes the length of the vector
+
+            :math:`\mathrm{T_A}(\vec{v})=\mathbf{A}\vec{v}` yielding an output vector that is the transformed vector
 
         Parameters
         ----------
-        other :
-            The matrix to perform matrix multiplication with
+        other : Matrix | Vector
+            The matrix / vector to perform matrix multiplication with
 
         Returns
         -------
-        :class:`Matrix`
-            The matrix that is the result of the matrix multiplication
+        :class:`Matrix` | :class:`Vector`
+            The matrix / vector that is the result of the matrix multiplication
 
         Raises
         ------
         :class:`AssertionError`
             Unable to compute matrix multiplication:
-            The # of columns in the left matrix does not match the # of rows in the right matrix
+            The # of columns in the left matrix does not match the # of rows in the right matrix / vector
         """
-        assert self.cols == other.rows, 'The # of columns in the left matrix does not match the # of rows in the right matrix'
+        if isinstance(other, Matrix):
+            assert self.cols == other.rows, 'The # of columns in the left matrix does not match the # of rows in the right matrix'
 
-        other_t = other.copy()
-        other_t.transpose()
+            other_t = other.copy()
+            other_t.transpose()
 
-        product = Matrix.zero(self.rows, other.cols)
-        for i in range(self.rows):
-            for j in range(other.cols):
-                product.__inner[i][j] = Vector(self.__inner[i]) * Vector(other_t.__inner[j])
-        return product
+            product = Matrix.zero(self.rows, other.cols)
+            for i in range(self.rows):
+                for j in range(other.cols):
+                    product.__inner[i][j] = Vector(self.__inner[i]) * Vector(other_t.__inner[j])
+            return product
+        else:
+            assert self.cols == other.length, 'The # of rows in the matrix must match the length of the vector'
+
+            return Vector([
+                Vector(row) * other
+                for row in self.__inner
+            ])
 
     def __pow__(self, other: int) -> Matrix:
         r"""Computes repeated matrix multiplication of this matrix :math:`\mathbf{A}` on itself ``other`` number of times
