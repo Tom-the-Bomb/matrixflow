@@ -1,16 +1,26 @@
 [project]
 name = "matrixflow"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
     {name = "Tom-the-Bomb", email = "me@tomthebomb.dev"}
 ]
-description = "A basic library implementing basic matrix and vector operations"
+description = "A rich library with implementations for mathematical matrices and vectors and their operations"
 license = {file = "LICENSE"}
 readme = "README.md"
 requires-python = ">=3.10"
 keywords = ["vector", "matrix", "math"]
 classifiers = [
-    "Programming Language :: Python"
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Natural Language :: English",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
 
 [tool.pyright]
@@ -20,6 +30,7 @@ typeCheckingMode = "strict"
 documentation = "https://matrixflow.readthedocs.io/en/latest/"
 homepage = "https://github.com/Tom-the-Bomb/matrixflow"
 repository = "https://github.com/Tom-the-Bomb/matrixflow"
+"Issue tracker" = "https://github.com/Tom-the-Bomb/matrixflow/issues/"
 
 [project.optional-dependencies]
 docs = [

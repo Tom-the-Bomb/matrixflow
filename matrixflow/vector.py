@@ -4,7 +4,7 @@ __all__ = ('Vector',)
 
 from typing import Any, Self, Sequence, Callable, overload
 from fractions import Fraction
-from math import sin, cos, acos
+from math import sin, cos, acos, atan2
 
 from .utils import *
 
@@ -26,7 +26,7 @@ class Vector:
 
     @classmethod
     def zero(cls, n: int) -> Self:
-        """Creates the zero vector of length ``n``
+        r"""Creates the zero vector of length ``n``: :math:`\vec{0}`
 
         Parameters
         ----------
@@ -36,7 +36,7 @@ class Vector:
         Returns
         -------
         :class:`Self`
-            The created zero vector
+            The created zero vector: :math:`\vec{0}`
         """
         return cls([0] * n)
 
@@ -60,6 +60,31 @@ class Vector:
         return cls([
             r * cos(theta),
             r * sin(theta),
+        ])
+
+    @classmethod
+    def from_cylindrical(cls, r: Number, theta: Number, z: Number) -> Self:
+        r"""Creates a vector of length 3: :math:`\begin{pmatrix}x\\y\\z\end{pmatrix}`
+        based on the provided spherical coordinates: :math:`\left(r,\theta,z\right)`
+
+        Parameters
+        ----------
+        r :
+            The magnitude of the vector
+        theta :
+            The angle away from the ``x-axis``
+        z :
+            The z-coordinate (distance along the vertical z-axis)
+
+        Returns
+        -------
+        :obj:`~typing.Self`
+            The created :math:`\mathbb{R}^3` cartesian vector
+        """
+        return cls([
+            r * cos(theta),
+            r * sin(theta),
+            z
         ])
 
     @classmethod
@@ -96,6 +121,53 @@ class Vector:
     def inner(self) -> list[Fraction]:
         """Returns a reference to the internal list representation of this vector"""
         return self.__inner
+
+    def to_polar(self) -> tuple[float, float]:
+        r"""For :math:`\mathbb{R}^2` vectors:
+        converts this vector from :math:`\begin{pmatrix}x\\y\end{pmatrix}` to polar coordinates :math:`\left(r,\theta\right)`
+
+        Returns
+        -------
+        tuple[:class:`float`, :class:`float`]
+            This vector in polar coordinates
+        """
+        x, y, *_ = self.__inner
+        return (
+            self.magnitude(),
+            atan2(y, x)
+        )
+
+    def to_cylindrical(self) -> tuple[float, float, float]:
+        r"""For :math:`\mathbb{R}^3` vectors:
+        converts this vector from :math:`\begin{pmatrix}x\\y\\z\end{pmatrix}` to polar coordinates :math:`\left(r,\theta,z\right)`
+
+        Returns
+        -------
+        tuple[:class:`float`, :class:`float`, :class:`float`]
+            This vector in cylindrical coordinates
+        """
+        x, y, z, *_ = self.__inner
+        return (
+            self.magnitude(),
+            atan2(y, x),
+            float(z),
+        )
+
+    def to_spherical(self) -> tuple[float, float, float]:
+        r"""For :math:`\mathbb{R}^3` vectors:
+        converts this vector from :math:`\begin{pmatrix}x\\y\\z\end{pmatrix}` to spherical coordinates :math:`\left(\rho,\theta,\phi\right)`
+
+        Returns
+        -------
+        tuple[:class:`float`, :class:`float`, :class:`float`]
+            This vector in polar coordinates
+        """
+        x, y, z, *_ = self.__inner
+        return (
+            r := self.magnitude(),
+            atan2(y, x),
+            atan2(z, r),
+        )
 
     def is_same_order(self, other: Vector) -> bool:
         """Returns ``True`` if this vector is of the same order as ``other``, else ``False``
@@ -142,7 +214,7 @@ class Vector:
         return max(self.__inner)
 
     def unit(self) -> Vector:
-        r"""Returns the unit vector :math:`\hat{a}` that is in this vector's :math:`\vec{a}` direction
+        r"""Returns the unit vector :math:`\hat{a}` that is in this vector :math:`\vec{a}`'s direction
 
         Returns
         -------
@@ -265,6 +337,16 @@ class Vector:
             ax * by - ay * bx,
         ])
 
+    def add_entry(self, entry: Number) -> None:
+        """Appends an element ``entry`` to the end of this vector
+
+        Parameters
+        ----------
+        entry :
+            The entry to append
+        """
+        self.__inner.append(convert(entry))
+
     def map(self, f: Callable[[int], None]) -> None:
         """Maps a function over all of this vector's elements
 
@@ -273,7 +355,7 @@ class Vector:
         f :
             The function to apply over the elements
             It will take in the current element ``i``
-            and should not return anything as it maps in-place
+            and should not return anything as it maps in place
         """
         for i in range(self.length):
             f(i)
@@ -480,7 +562,7 @@ class Vector:
 
     @overload
     def __imul__(self, other: Number) -> Self:
-        r"""Scales this vector :math:`\vec{a}` up by a factor of ``other`` :math:`k`
+        r"""Scales this vector :math:`\vec{a}` up by a factor of ``other`` :math:`k` (in place)
 
         Parameters
         ----------
@@ -545,9 +627,11 @@ class Vector:
     def __imul__(self, other: Number | Vector) -> Self | Fraction:
         r"""Overloaded method:
 
-        #. Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`: see: :meth:`__mul__`
+        see: :meth:`__mul__`
 
-        #. Scales this vector :math:`\vec{a}` up by a factor of ``other`` :math:`k`
+        #. Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`:
+
+        #. Scales this vector :math:`\vec{a}` up by a factor of ``other`` :math:`k` (in place)
 
         Parameters
         ----------
@@ -590,7 +674,7 @@ class Vector:
         return copy
 
     def __itruediv__(self, other: Number) -> Self:
-        r"""Scales this vector :math:`\vec{a}` down by a factor of ``other`` :math:`k`
+        r"""Scales this vector :math:`\vec{a}` down by a factor of ``other`` :math:`k` (in place)
 
         Parameters
         ----------
@@ -628,7 +712,7 @@ class Vector:
         return copy
 
     def __ifloordiv__(self, other: Number) -> Self:
-        r"""Scales this vector :math:`\vec{a}` down by a factor of ``other`` :math:`k` and then **floored**
+        r"""Scales this vector :math:`\vec{a}` down by a factor of ``other`` :math:`k` and then **floored** (in place)
 
         Parameters
         ----------
@@ -723,6 +807,21 @@ class Vector:
             The element of the vector at ``i``: :math:`\vec{a}_i`
         """
         return self.__inner[i]
+
+    def __contains__(self, target: Number) -> bool:
+        """Returns ``True`` if the value ``target`` can be found in this vector, else ``False``
+
+        Parameters
+        ----------
+        target :
+            The target value to search for
+
+        Returns
+        -------
+        :class:`bool`
+            whether or not the value ``target`` can be found in this vector
+        """
+        return convert(target) in self.__inner
 
     def __copy__(self) -> Self:
         """Creates a copy of this vector and its elements

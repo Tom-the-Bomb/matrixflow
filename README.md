@@ -1,11 +1,13 @@
 
 # Matrixflow
 
-A simple & light library with basic implementations for mathematical **matrices** and **vectors**
+A rich library with implementations for mathematical **matrices** and **vectors** and their operations
 
 Refer to the documentation over [here](https://matrixflow.readthedocs.io/en/latest/index.html)
 
 ## Installation
+
+Python 3.10 or higher is required
 
 ```powershell
 py -m pip install matrixflow
@@ -28,7 +30,7 @@ A = Matrix([
     [7, 8, 9],
 ])
 print(A.det()) # calculates the determinant
-A.tranpose()   # transposes `A` in-place
+A.transpose()   # transposes `A` in place
 
 u = Vector([1, 2, 3])
 v = Vector([4, 5, 6])
@@ -36,3 +38,20 @@ print(u * v)   # calculates the dot product
 ```
 
 Further examples can be found over at the documentation [here](https://matrixflow.readthedocs.io/en/latest/examples.html)
+
+## Highlight Features
+
+- **Matrices**
+    - Basic operations: addition, subtraction, scalar/matrix multiplication and other basic matrix functions
+    - Linear transformations
+    - determinant
+    - Linear system of equations:
+        - Gaussian elimination: row echelon & reduced row echelon forms
+        - Inverse
+    - and many more!
+
+- **Vectors**
+    - Basic operations: addition, subtraction, scalar/dot/cross products and other basic vector functions
+    - polar/spherical and cartesian conversions
+    - projection, rejection
+    - and many more!

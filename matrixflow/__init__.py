@@ -1,6 +1,6 @@
-"""A library providing implementations for basic algebraic ``matrix`` and ``vector`` operations"""
+"""A rich library with implementations for mathematical `matrices` and `vectors` and their operations"""
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 __author__  = 'Tom the Bomb'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2024-present Tom the Bomb'

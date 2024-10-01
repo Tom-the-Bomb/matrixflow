@@ -9,7 +9,6 @@ def test_matrices() -> None:
         [2, -3, 1],
         [3, 2, 1],
     ])
-
     B = Matrix([
         [4, 7, 1],
         [5, -2, 1],
@@ -36,21 +35,19 @@ def test_matrices() -> None:
     assert A ** 3 == A @ A @ A
 
 def test_linear_system() -> None:
-    print(solve_linear_system(
-        [
-            [2, 3, 5, 6],
-            [1, 2, -3, 5],
-            [5, 6, 9, -1],
-            [9, 1.5, 3, -2],
-        ],
-        [5, 6, 9, -2],
-    ))
+    A = [
+        [2, 3, 5, 6],
+        [1, 2, -3, 5],
+        [5, 6, 9, -1],
+        [9, 1.5, 3, -2],
+    ]
+    b = [5, 6, 9, -2]
 
-    v = Vector([1, 2])
-    shear = Matrix.shear_2d(1, 1)
-    reflection = Matrix.reflect_x()
-
-    print(reflection @ shear @ v)
+    assert (
+        solve_linear_system(A, b)
+        == Matrix(A).reduced_row_echelon_form(Matrix.from_columns([b]))[1]
+            .col_at(0)
+    )
 
 def test_vectors() -> None:
     u = Vector([2, 2, -2])

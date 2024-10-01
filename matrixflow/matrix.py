@@ -13,7 +13,7 @@ from math import sin, cos
 from .vector import Vector
 from .utils import *
 
-def solve_linear_system(coefficients: list[list[Number]], b: list[Number]) -> list[Fraction]:
+def solve_linear_system(coefficients: Sequence[Sequence[Number]], b: Sequence[Number]) -> list[Fraction]:
     r"""Solves a system of ``n`` linear equations with ``n`` variables: :math:`\mathbf{A}x=\mathbf{b}`
 
     We return :math:`x` by computing :math:`x=\mathbf{A}^{-1}\mathbf{b}`
@@ -108,7 +108,7 @@ class Matrix:
         )
 
     @classmethod
-    def from_columns(cls, columns: Sequence[Sequence[Fraction]]) -> Self:
+    def from_columns(cls, columns: Sequence[Sequence[Number]]) -> Self:
         """Creates a new matrix from a list of ``columns`` of the matrix
 
         * This is useful for creating transformations where ``columns`` directly corresponds to the list of respective transformed basis vectors
@@ -174,9 +174,9 @@ class Matrix:
 
         Parameters
         ----------
-        x_factor :
+        x_gradient :
             The horizontal shear gradient on the :math:`x` basis vector, by default ``0``
-        y_factor :
+        y_gradient :
             The vertical shear gradient  on the :math:`y` basis vector, by default ``0``
 
         Returns
@@ -289,15 +289,50 @@ class Matrix:
         """Returns the number of ``columns`` this matrix has"""
         return len(self.__inner[0])
 
+    @property
+    def inner(self) -> list[list[Fraction]]:
+        """Returns a reference to the internal list representation of this matrix"""
+        return self.__inner
+
+    def row_at(self, i: int) -> list[Fraction]:
+        """Returns a reference to the ``i``-th row of the matrix
+
+        Parameters
+        ----------
+        i :
+            The index of the row
+
+        Returns
+        -------
+        list[:obj:`~fractions.Fraction`]
+            The row
+        """
+        return self.__inner[i]
+
+    def col_at(self, j: int) -> list[Fraction]:
+        """Returns a copy of the ``j``-th column of the matrix
+
+        Parameters
+        ----------
+        j :
+            The index of the column
+
+        Returns
+        -------
+        list[:obj:`~fractions.Fraction`]
+            The column
+        """
+        return [self.__inner[i][j] for i in range(self.rows)]
+
     def rot90(self) -> None:
-        """Rotates the entries of this matrix in-place, in the positive angular direction (counter-clockwise) by 90 degrees"""
+        """Rotates the entries of this matrix in place, in the positive angular direction (counter-clockwise) by 90 degrees"""
         self.transpose()
 
         for i in range(self.rows):
             self.__inner[i].reverse()
 
     def transpose(self) -> None:
-        r"""Transposes this matrix :math:`\mathbf{A}` in-place: switches the ``rows`` with the ``columns``
+        r"""Transposes this matrix :math:`\mathbf{A}` in place: switches the ``rows`` with the ``columns``
 
         :math:`\mathbf{A}\mapsto\mathbf{A}^\intercal`
         """
@@ -363,7 +398,7 @@ class Matrix:
         f :
            The function to apply over the elements
            It will take in the indices of the current element ``(i, j)``
-           and should not return anything as it maps in-place
+           and should not return anything as it maps in place
         """
         for i in range(self.rows):
             for j in range(self.cols):
@@ -396,7 +431,7 @@ class Matrix:
 
     def is_singular(self) -> bool:
         r"""Returns ``True`` if this matrix :math:`\mathbf{A}` is square and is **singular**:
-        :math:`\mathbf{A}^{-1}` does not exist, else ``False``
+        meaning :math:`\mathbf{A}^{-1}` does not exist, else ``False``
 
         Returns
         -------
@@ -473,6 +508,222 @@ class Matrix:
             Whether or not this matrix is diagonal
         """
         return all(self.__inner[i][j] == 0 for j in range(self.cols) for i in range(self.rows) if i == j)
+
+    def row_add(self, i: int, j: int, k: Number) -> None:
+        r"""Elementary row operation 1: replaces row ``i`` with the sum of itself and ``k`` times row ``j``:
+
+        :math:`R_i+kR_j\rightarrow R_i` where :math:`i\ne j`
+
+        Parameters
+        ----------
+        i :
+            The row to replace
+        j :
+            The row to multiply by ``k`` and add onto row ``i``
+        k :
+            The multiplier for row ``j``
+        """
+        for col in range(self.cols):
+            self[i][col] += convert(k * self[j][col])
+
+    def row_mul(self, i: int, k: Number) -> None:
+        r"""Elementary row operation 2: multiplies each element in row ``i`` by ``k``
+
+        :math:`kR_i\rightarrow R_i` where :math:`k\ne 0`
+
+        Parameters
+        ----------
+        i :
+            The row to modify
+        k :
+            The multiplier for row ``i``
+        """
+        for col in range(self.cols):
+            self[i][col] *= convert(k)
+
+    def row_switch(self, i: int, j: int) -> None:
+        r"""Elementary row operation 3: switches row ``i`` with row ``j``
+
+        :math:`R_i\leftrightarrow R_j`
+
+        Parameters
+        ----------
+        i :
+            The row to get replaced by ``j``
+        j :
+            The row to get replaced by row ``i``
+        """
+        for col in range(self.cols):
+            self[i][col], self[j][col] = self[i][col], self[j][col]
+
+    @overload
+    def row_echelon_form(self, b: None = None) -> tuple[Matrix, None]:
+        ...
+
+    @overload
+    def row_echelon_form(self, b: Matrix) -> tuple[Matrix, Matrix]:
+        ...
+
+    @overload
+    def reduced_row_echelon_form(self, b: None = None) -> tuple[Matrix, None]:
+        ...
+
+    @overload
+    def reduced_row_echelon_form(self, b: Matrix) -> tuple[Matrix, Matrix]:
+        ...
+
+    def row_echelon_form(self, b: Matrix | None = None) -> tuple[Matrix, Matrix | None]:
+        r"""Computes a new matrix that is this matrix :math:`\mathbf{A}`'s **row echelon form** using the
+        `Gaussian elimination algorithm <https://math.libretexts.org/Bookshelves/Linear_Algebra/Fundamentals_of_Matrix_Algebra_(Hartman)/01%3A_Systems_of_Linear_Equations/1.03%3A_Elementary_Row_Operations_and_Gaussian_Elimination>`_
+
+        As a way to replicate augmented matrices of the form :math:`\mathbf{A}|\mathbf{B}`:
+        ``b`` represents the right side of the augmented matrix :math:`\mathbf{B},` while this matrix represents the left side :math:`\mathbf{A}`
+
+        ``b`` will have the same row operations that were applied onto this matrix :math:`\mathbf{A}`, applied on it
+
+        The resulting row echelon form of :math:`\mathbf{A}` must satisfy the following criteria:
+
+            #. The first nonzero entry in each row is a 1 (called a leading 1).
+            #. Each leading 1 comes in a column to the right of the leading 1s in rows above it. (this is the **pivot** point)
+            #. All rows that are all 0s come at the bottom of the matrix.
+
+        Parameters
+        ----------
+        b :
+            A matrix to mirror the row operations that were performed onto this matrix, by default ``None``
+
+        Returns
+        -------
+        tuple[:class:`Matrix`, :class:`Matrix` | None]
+            A new matrix that is this matrix in row echelon form
+            and a **copy** of the matrix ``b`` which mirrored the row operations performed
+        """
+        copy = self.copy()
+        b_copy = b.copy() if b is not None else None
+
+        # "Forward steps" for gaussian elimination to row echelon form
+        #
+        # start at the first row: `top_row`: first row that hasn't been worked on yet in each iteration
+        for top_row in range(copy.rows):
+            # This searches for `col` which is the leftmost column that is not all zeroes
+            for col in range(copy.cols):
+                for row in range(top_row, copy.rows):
+                    if copy.__inner[row][col] != 0:
+                        break
+                else:
+                    continue
+                break
+            else:
+                break
+
+            # If the entry in this row: `top_row` and column: `col` is zero,
+            # interchange rows with another row below the current row: `row` so that that the entry becomes non-zero.
+            # If all entries below are zero, we are done with this column
+            if copy.__inner[top_row][col] == 0:
+                copy.row_switch(top_row, row)
+
+                if b_copy is not None:
+                    b_copy.row_switch(top_row, row)
+
+            # If the current/first entry is not a 1:
+            # multiply by `multiplier` which is the reciprocal of `entry` to make `entry` a one if it isn't already a one.
+            if (entry := copy.__inner[top_row][col]) != 1:
+                multiplier = 1 / entry
+
+                copy.row_mul(top_row, multiplier)
+                if b_copy is not None:
+                    b_copy.row_mul(top_row, multiplier)
+
+                copy.__inner[top_row][col] = Fraction(1)
+
+            # Repeatedly use row operation 1 (adding) to put zeros under the leading 1
+            #
+            # Go through the test of the rows
+            for row in range(top_row + 1, copy.rows):
+                if (entry := copy.__inner[row][col]) != 0:
+                    multiplier = -entry
+
+                    # This will send elements in row `row` to `0` if it is under a `1`
+                    # as it becomes `entry + (-entry) * a` where `a` is the corresponding element from `top_row`
+                    #
+                    # if `a = 1` then the above expression evaluates to `0` which is exactly what we need: zeroes under leading ones
+                    copy.row_add(row, top_row, multiplier)
+                    if b_copy is not None:
+                        b_copy.row_add(row, top_row, multiplier)
+
+            # repeat for all new rows and columns until they have all been worked on
+
+        return copy, b_copy
+
+    def reduced_row_echelon_form(self, b: Matrix | None = None) -> tuple[Matrix, Matrix | None]:
+        r"""Computes a new matrix that is this matrix :math:`\mathbf{A}`'s **reduced row echelon form**
+
+        Similar to :meth:`row_echelon_form`: ``b`` will mirror the row operations applied onto this matrix.
+
+        It first computes the **row echelon form** :math:`\mathrm{rref}(\mathbf{A})` using :meth:`row_echelon_form`
+        that it will further reduce using the backwards steps of Gaussian Elimination
+
+        The resulting reduced row echelon form of :math:`\mathbf{A}` must satisfy the following criteria:
+
+            #. It is in row echelon form
+            #. Each column that contains a leading 1 has 0s in all of its other entries
+
+        If :math:`\mathbf{A}` is invertible (non-singular) then :math:`\mathrm{rref}(\mathbf{A})=\mathbf{I}`
+        and ``b`` :math:`\mathbf{B}` will represent the corresponding values of the solution to the linear system of equations
+        represented by the augmented matrix :math:`\mathbf{A}|\mathbf{B}`.
+
+        Parameters
+        ----------
+        b :
+            A matrix to mirror the row operations that were performed onto this matrix, by default ``None``
+
+        Returns
+        -------
+        tuple[:class:`Matrix`, :class:`Matrix` | None]
+            A new matrix that is this matrix in reduced row echelon form
+            and a **copy** of the matrix ``b`` which mirrored the row operations performed
+        """
+        a, b = self.row_echelon_form(b)
+
+        # "Backward steps" for gaussian elimination to reduced row echelon form
+        #
+        # Iterate through rows starting at the bottom, working up
+        for last_row in range(a.rows - 1, 0, -1):
+            for col in range(a.cols):
+                # Find the leading ones that were created before
+                if a[last_row][col] == 1:
+                    # Iterate through all rows above the leading 1
+                    for row in range(last_row):
+                        # Use row operation 1 (adding) to put zeros above each leading 1
+                        if (entry := a[row][col]) != 0:
+                            multiplier = -entry
+
+                            # This will send elements in row `row` to `0` if it is above a `1`
+                            # as it becomes `entry + (-entry) * a` where `a` is the corresponding element from `last_row`
+                            #
+                            # if `a = 1` then the above expression evaluates to `0` which is exactly what we need: zeroes above the leading ones
+                            a.row_add(row, last_row, multiplier)
+                            if b is not None:
+                                b.row_add(row, last_row, multiplier)
+                    break
+        return a, b
+
+    def change_basis(self, new_bases: Matrix) -> Matrix:
+        r"""Changes the bases for this linear transformation :math:`\mathbf{M}` into the new bases defined by ``new_bases`` :math:`\mathbf{P}`
+
+        :math:`\mathbf{P}^{-1}\mathbf{M}\mathbf{P}`
+
+        Parameters
+        ----------
+        new_bases :
+            The matrix containing the new basis vectors
+
+        Returns
+        -------
+        :class:`Matrix`
+            The new linear transformation after the change of basis
+        """
+        return new_bases.inverted() @ self @ new_bases
 
     def get_submatrix_of(self, rows: set[int], cols: set[int]) -> Matrix:
         """A submatrix is the matrix obtained by deleting the **rows** that that have indices in the set ``rows``
@@ -585,6 +836,13 @@ class Matrix:
 
         :math:`|\mathbf{A}|=\det(\mathbf{A})=\displaystyle\sum_i{\mathbf{A}_{ij}\mathbf{C}_{ij}}=\displaystyle\sum_j{\mathbf{A}_{ij}\mathbf{C}_{ij}}`
 
+        The determinant of a matrix represents the **scale factor** of space it is applied on.
+
+        If :math:`\det(\mathbf{A})<0`, that means that a change of orientation has occured
+
+        If :math:`\det(\mathbf{A})=0`, that means that space has been squished down to a lower dimension than what it originally was:
+        due to the fact that this transformation's basis vectors are not all **linearly independent** thereby making this matrix **singular**.
+
         Returns
         -------
         :obj:`~fractions.Fraction`
@@ -606,7 +864,7 @@ class Matrix:
         )
 
     def trace(self) -> Fraction:
-        r"""Returns the trace of this square matrix :math:`\mathbf{A}`
+        r"""Computes the trace of this square matrix :math:`\mathbf{A}`
 
         :math:`\mathrm{tr}\left(\mathbf{A}\right)=\displaystyle\sum_i{\mathbf{A}_{ii}}`
 
@@ -627,10 +885,36 @@ class Matrix:
             start=Fraction()
         )
 
+    def rank(self) -> int:
+        r"""Computes the rank of this matrix :math:`\mathbf{A}` as a linear transformation
+
+        The rank of this matrix :math:`\rho(\mathbf{A})` represents the **number** of **linearly independent**
+        vectors (columns) of this linear transformation. It represents the dimensionality of space after the transformation
+
+        It can be computed as the number of non-zero rows in the **row echelon form** of this matrix
+
+        Returns
+        -------
+        :class:`int`
+            The rank of this matrix
+        """
+        row_echelon, _ = self.row_echelon_form()
+        rank = 0
+
+        for row in row_echelon:
+            for element in row:
+                if element != 0:
+                    rank += 1
+                    break
+        return rank
+
     def inverted(self) -> Matrix:
-        r"""Computes a new matrix :math:`\mathbf{A}^{-1}` that is this matrix :math:`\mathbf{A}`'s
+        r"""Computes a new matrix :math:`\mathbf{A}^{-1}` that is this matrix :math:`\mathbf{A}`'s inverse
 
         :math:`\mathbf{A}^{-1}=\frac{\mathrm{adj}\left(\mathbf{A}\right)}{\det(\mathbf{A})}` if :math:`\det(\mathbf{A})\ne0`
+        where :math:`\mathbf{A}^{-1}\mathbf{A}=\mathbf{A}\mathbf{A}^{-1}=\mathbf{I}`:
+
+        (:math:`\mathbf{A}^{-1}` is the transformation that cancels out this transformation :math:`\mathbf{A}`)
 
         Returns
         -------
@@ -651,9 +935,10 @@ class Matrix:
         raise ValueError('This matrix is singular: inverse does not exist')
 
     def invert(self) -> None:
-        r"""Inverts this matrix in-place
+        r"""Inverts this matrix in place
 
         :math:`\mathbf{A}\mapsto\mathbf{A}^{-1}` if :math:`\det(\mathbf{A})\ne0`
+        where :math:`\mathbf{A}^{-1}\mathbf{A}=\mathbf{A}\mathbf{A}^{-1}=\mathbf{I}`
 
         Returns
         -------
@@ -852,7 +1137,7 @@ class Matrix:
             The scalar multiplication matrix: :math:`k\mathbf{A}`
         """
         def _mul(i: int, j: int) -> None:
-            self.__inner[i][j] = self.__inner[i][j] * convert(other)
+            self.__inner[i][j] *= convert(other)
         self.map(_mul)
         return self
 
@@ -941,10 +1226,9 @@ class Matrix:
 
         :math:`\mathbf{AB}=\left(\displaystyle\sum_r{\mathbf{A}_{ir}\mathbf{B}_{ij}}\right)_{1\le i,j\lt n}`
 
-        -
-            This also can represent a **composition** of 2 linear maps:
-            :math:`f\circ g=f(g(\vec{v}))` which says apply :math:`g` first, then :math:`f`
-            where this matrix represents the map :math:`f` and ``other`` represents the map :math`g`
+        This can also represent a **composition** of 2 linear maps:
+        :math:`f\circ g=f(g(\vec{v}))` which says: apply :math:`g` first, then :math:`f`,
+        where this matrix represents the map :math:`f` and ``other`` represents the map :math:`g`
 
         Parameters
         ----------
@@ -999,10 +1283,9 @@ class Matrix:
 
             :math:`\mathbf{AB}=\left(\displaystyle\sum_r{\mathbf{A}_{ir}\mathbf{B}_{ij}}\right)_{1\le i,j\lt n}`
 
-            -
-                This also can represent a **composition** of 2 linear maps:
-                :math:`f\circ g=f(g(\vec{v}))` which says apply :math:`g` first, then :math:`f`
-                where this matrix represents the map :math:`f` and ``other`` represents the map :math`g`
+            This can also represent a **composition** of 2 linear maps:
+            :math:`f\circ g=f(g(\vec{v}))` which says: apply :math:`g` first, then :math:`f`,
+            where this matrix represents the map :math:`f` and ``other`` represents the map :math:`g`
 
         #.
             Applies the linear transformation that is this matrix :math:`\mathbf{A}` on the vector ``other`` :math:`\vec{v}`:
@@ -1147,7 +1430,23 @@ class Matrix:
         list[:obj:`~fractions.Fraction`]
             The ``i-th`` row of this vector: :math:`\mathbf{A}_i`
         """
-        return self.__inner[i]
+        return self.row_at(i)
+
+    def __contains__(self, target: Number) -> bool:
+        """Returns ``True`` if the value ``target`` can be found in this matrix, else ``False``
+
+        Parameters
+        ----------
+        target :
+            The target value to search for
+
+        Returns
+        -------
+        :class:`bool`
+            whether or not the value ``target`` can be found in this matrix
+        """
+        target = convert(target)
+        return any(target in row for row in self.__inner)
 
     def __copy__(self) -> Self:
         """Creates a copy of this matrix and its elements
