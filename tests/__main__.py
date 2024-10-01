@@ -71,6 +71,10 @@ def test_vectors() -> None:
     assert u * v / v.magnitude() == u.project(v).magnitude()
     assert (u @ v).angle_between(u) == (u @ v).angle_between(v) == pi / 2
 
+    assert Vector.from_polar(5, -pi/2).to_polar() == (5, -pi/2)
+    assert Vector.from_cylindrical(5, pi/3, 2).to_cylindrical() == (5, pi/3, 2)
+    assert Vector.from_spherical(5, pi, pi/2).to_spherical() == (5, pi, pi/2)
+
 if __name__ == '__main__':
     test_matrices()
     test_linear_system()

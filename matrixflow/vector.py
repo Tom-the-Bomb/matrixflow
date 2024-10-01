@@ -4,7 +4,7 @@ __all__ = ('Vector',)
 
 from typing import Any, Self, Sequence, Callable, overload
 from fractions import Fraction
-from math import sin, cos, acos, atan2
+from math import sin, cos, acos, atan2, sqrt
 
 from .utils import *
 
@@ -48,9 +48,9 @@ class Vector:
         Parameters
         ----------
         r :
-            The magnitude of the vector
+            The **radial** distance: the magnitude of the vector
         theta :
-            The angle away from the ``x-axis``
+            The **polar** angle: the angle away from the ``x-axis``
 
         Returns
         -------
@@ -65,16 +65,16 @@ class Vector:
     @classmethod
     def from_cylindrical(cls, r: Number, theta: Number, z: Number) -> Self:
         r"""Creates a vector of length 3: :math:`\begin{pmatrix}x\\y\\z\end{pmatrix}`
-        based on the provided spherical coordinates: :math:`\left(r,\theta,z\right)`
+        based on the provided cylindrical coordinates: :math:`\left(r,\theta,z\right)`
 
         Parameters
         ----------
         r :
-            The magnitude of the vector
+            The euclidean distance from the z-axis to the vector
         theta :
-            The angle away from the ``x-axis``
+            The **polar** angle: the  angle away from the ``x-axis``
         z :
-            The z-coordinate (distance along the vertical z-axis)
+            The **axial coordinate**: the z-coordinate, distance away from the xy-plane
 
         Returns
         -------
@@ -84,7 +84,7 @@ class Vector:
         return cls([
             r * cos(theta),
             r * sin(theta),
-            z
+            z,
         ])
 
     @classmethod
@@ -95,11 +95,11 @@ class Vector:
         Parameters
         ----------
         rho :
-            The magnitude of the vector
+            The **radial** distance: the magnitude of the vector
         theta :
-            The angle away from the ``z-axis``
+            The **polar** angle: the angle away from the ``z-axis``
         phi :
-            The angle away from the ``x-axis``
+            The **azimuthal** angle: the angle away from the ``x-axis``
 
         Returns
         -------
@@ -107,9 +107,9 @@ class Vector:
             The created :math:`\mathbb{R}^3` cartesian vector
         """
         return cls([
-            rho * sin(theta) * cos(phi),
-            rho * sin(theta) * sin(phi),
-            rho * cos(theta),
+            rho * sin(phi) * cos(theta),
+            rho * sin(phi) * sin(theta),
+            rho * cos(phi),
         ])
 
     @property
@@ -134,12 +134,12 @@ class Vector:
         x, y, *_ = self.__inner
         return (
             self.magnitude(),
-            atan2(y, x)
+            atan2(y, x),
         )
 
     def to_cylindrical(self) -> tuple[float, float, float]:
         r"""For :math:`\mathbb{R}^3` vectors:
-        converts this vector from :math:`\begin{pmatrix}x\\y\\z\end{pmatrix}` to polar coordinates :math:`\left(r,\theta,z\right)`
+        converts this vector from :math:`\begin{pmatrix}x\\y\\z\end{pmatrix}` to cylindrical coordinates :math:`\left(r,\theta,z\right)`
 
         Returns
         -------
@@ -148,7 +148,7 @@ class Vector:
         """
         x, y, z, *_ = self.__inner
         return (
-            self.magnitude(),
+            sqrt(x ** 2 + y ** 2),
             atan2(y, x),
             float(z),
         )
@@ -166,7 +166,7 @@ class Vector:
         return (
             r := self.magnitude(),
             atan2(y, x),
-            atan2(z, r),
+            acos(z / r),
         )
 
     def is_same_order(self, other: Vector) -> bool:
@@ -231,14 +231,14 @@ class Vector:
         Returns
         -------
         :class:`float`
-            The magnitude of this vector: :math:`\left\|\vec{a}\right\|`
+            The magnitude of this vector: :math:`\|\vec{a}\|`
         """
         return self.norm(2)
 
     def project(self, other: Vector) -> Vector:
         r"""The vector projection :math:`\vec{a_1}` of this vector :math:`\vec{a}` onto ``other`` :math:`\vec{b}`
 
-        :math:`\vec{a_1}=\left(\left\|\vec{a}\right\|\cos\theta\right)\hat{b}={\frac{\vec{a}\cdot\vec{b}}{\left\|\vec{b}\right\|}}\hat{b}`
+        :math:`\vec{a_1}=\left(\|\vec{a}\|\cos\theta\right)\hat{b}={\frac{\vec{a}\cdot\vec{b}}{\|\vec{b}\|}}\hat{b}`
 
         (The scalar projection is also the dot product scaled down by the magnitude of :math:`\vec{b}`)
 
@@ -286,10 +286,31 @@ class Vector:
         """
         return acos(self.dot(other) / (self.magnitude() * other.magnitude()))
 
+    def area_between(self, other: Vector) -> float:
+        r"""Computes the area formed by the triangle bounded by this vector and ``other``
+
+        This is simply half of the determinant of the matrix formed by the 2 vectors,
+        which is the area of the parallelogram formed by the 2 vectors,
+        which is also the magnitude of the cross product vector: :math:`\vec{a}\times\vec{b}`
+
+        :math:`A=\frac{1}{2}\|\vec{a}\times\vec{b}\|=\frac{1}{2}\|a\|\|b\|\sin\theta=\frac{1}{2}\begin{vmatrix}a_x&b_x\\a_y&b_y\\\vdots&\vdots\end{vmatrix}`
+
+        Parameters
+        ----------
+        other :
+            The other matrix to compute the area between
+
+        Returns
+        -------
+        :class:`float`
+            The area between the 2 vectors
+        """
+        return self.cross(other).magnitude() / 2
+
     def dot(self, other: Vector) -> Fraction:
         r"""Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
 
-        :math:`\vec{a}\cdot\vec{b}=\left\|\vec{a}\right\|\left\|\vec{b}\right\|\cos\theta`
+        :math:`\vec{a}\cdot\vec{b}=\|\vec{a}\|\|\vec{b}\|\cos\theta`
 
         which is also the scalar projection of this vector times the magnitude of :math:`\vec{b}`
 
@@ -480,7 +501,7 @@ class Vector:
     def __rmul__(self, other: Vector) -> Fraction:
         r"""Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
 
-        :math:`\vec{a}\cdot\vec{b}=\left\|\vec{a}\right\|\left\|\vec{b}\right\|\cos\theta`
+        :math:`\vec{a}\cdot\vec{b}=\|\vec{a}\|\|\vec{b}\|\cos\theta`
         which is also the scalar projection of this vector times the magnitude of :math:`\vec{b}`
 
         Parameters
@@ -513,7 +534,7 @@ class Vector:
     def __mul__(self, other: Vector) -> Fraction:
         r"""Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
 
-        :math:`\vec{a}\cdot\vec{b}=\left\|\vec{a}\right\|\left\|\vec{b}\right\|\cos\theta`
+        :math:`\vec{a}\cdot\vec{b}=\|\vec{a}\|\|\vec{b}\|\cos\theta`
         which is also the scalar projection of this vector times the magnitude of :math:`\vec{b}`
 
         Parameters
@@ -546,7 +567,7 @@ class Vector:
     def __imul__(self, other: Vector) -> Fraction:
         r"""Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
 
-        :math:`\vec{a}\cdot\vec{b}=\left\|\vec{a}\right\|\left\|\vec{b}\right\|\cos\theta`
+        :math:`\vec{a}\cdot\vec{b}=\|\vec{a}\|\|\vec{b}\|\cos\theta`
         which is also the scalar projection of this vector times the magnitude of :math:`\vec{b}`
 
         Parameters
@@ -598,7 +619,7 @@ class Vector:
         #.
             Computes the scalar dot product of this vector :math:`\vec{a}` and ``other`` :math:`\vec{b}`
 
-            :math:`\vec{a}\cdot\vec{b}=\left\|\vec{a}\right\|\left\|\vec{b}\right\|\cos\theta`
+            :math:`\vec{a}\cdot\vec{b}=\|\vec{a}\|\|\vec{b}\|\cos\theta`
 
             which is also the scalar projection of this vector times the magnitude of :math:`\vec{b}`
 

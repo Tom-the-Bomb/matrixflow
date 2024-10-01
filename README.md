@@ -9,13 +9,13 @@ Refer to the documentation over [here](https://matrixflow.readthedocs.io/en/late
 
 Python 3.10 or higher is required
 
-```powershell
+```bash
 py -m pip install matrixflow
 ```
 
 or from github
 
-```powershell
+```bash
 py -m pip install git+https://github.com/Tom-the-Bomb/matrixflow.git
 ```
 

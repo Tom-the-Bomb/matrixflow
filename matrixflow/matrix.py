@@ -16,7 +16,7 @@ from .utils import *
 def solve_linear_system(coefficients: Sequence[Sequence[Number]], b: Sequence[Number]) -> list[Fraction]:
     r"""Solves a system of ``n`` linear equations with ``n`` variables: :math:`\mathbf{A}x=\mathbf{b}`
 
-    We return :math:`x` by computing :math:`x=\mathbf{A}^{-1}\mathbf{b}`
+    It returns :math:`x` by computing :math:`x=\mathbf{A}^{-1}\mathbf{b}`
 
     Parameters
     ----------
