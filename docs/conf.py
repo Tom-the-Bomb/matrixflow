@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath('..'))
 project = 'matrixflow'
 copyright = '2024, Tom-the-Bomb'
 author = 'Tom-the-Bomb'
-release = '0.1.2'
+release = '0.1.3'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

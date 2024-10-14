@@ -821,7 +821,7 @@ class Matrix:
         Returns
         -------
         :class:`Matrix`
-            The adjugate matrix
+            The adjugate matrix of this matrix
 
         Raises
         ------
@@ -846,6 +846,8 @@ class Matrix:
 
         If :math:`\det(\mathbf{A})=0`, that means that space has been squished down to a lower dimension than what it originally was:
         due to the fact that this transformation's basis vectors are not all **linearly independent** thereby making this matrix **singular**.
+
+        If :math:`\mathbf{A}` is **upper-triangular** or **lower-triangular** then :math:`\det(\mathbf{A})=\mathrm{tr}(\mathbf{A})`.
 
         Returns
         -------
@@ -1352,9 +1354,16 @@ class Matrix:
             Unable to compute matrix multiplication:
             The # of columns in the left matrix does not match the # of rows in the right matrix
         """
-        power = Matrix.identity(self.rows)
-        for _ in range(other):
-            power @= self
+        if other >= 0:
+            power = Matrix.identity(self.rows)
+            for _ in range(other):
+                power @= self
+        else:
+            power = Matrix.identity(self.rows)
+            inverse = self.inverted()
+
+            for _ in range(abs(other)):
+                power @= inverse
         return power
 
     def __pos__(self) -> Self:

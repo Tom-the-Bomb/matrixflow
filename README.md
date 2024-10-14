@@ -1,6 +1,8 @@
 
 # Matrixflow
 
+[![Downloads](https://static.pepy.tech/badge/matrixflow)](https://pepy.tech/project/matrixflow)
+
 A rich library with implementations for mathematical **matrices** and **vectors** and their operations
 
 Refer to the documentation over [here](https://matrixflow.readthedocs.io/en/latest/index.html)

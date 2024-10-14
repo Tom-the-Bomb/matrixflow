@@ -33,6 +33,10 @@ def test_matrices() -> None:
     assert (A @ B).det() == A.det() * B.det()
     assert (A @ B).trace() == (B @ A).trace()
     assert A ** 3 == A @ A @ A
+    assert A ** 0 == I
+
+    A_inv = A.inverted()
+    assert A ** -3 == A_inv @ A_inv @ A_inv
 
 def test_linear_system() -> None:
     A = [
