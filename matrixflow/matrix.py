@@ -672,6 +672,9 @@ class Matrix:
         and ``b`` :math:`\mathbf{B}` will represent the corresponding values of the solution to the linear system of equations
         represented by the augmented matrix :math:`\mathbf{A}|\mathbf{B}`.
 
+        Additionally, computing :math:`\mathrm{rref}(\mathbf{A}|\mathbf{I})` where ``b`` is :math:`\mathbf{I}`
+        gives you :math:`\mathbf{I}|\mathbf{A}^{-1}` providing that :math:`\mathbf{A}` is invertible.
+
         Parameters
         ----------
         b :
@@ -813,7 +816,7 @@ class Matrix:
     def adj(self) -> Matrix:
         r"""Computes a new matrix that is this matrix :math:`\mathbf{A}`'s adjugate matrix
 
-        :math:`\mathrm{adj}\left(\mathbf{A}\right)=\mathbf{C}^\intercal` where :math:`\mathbf{C}` is the cofactor matrix
+        :math:`\mathrm{adj}(\mathbf{A})=\mathbf{C}^\intercal` where :math:`\mathbf{C}` is the cofactor matrix
 
         Returns
         -------
@@ -835,6 +838,7 @@ class Matrix:
         The determinant of a matrix is the sum of all the products of the cofactor and element in any given row or column
 
         :math:`|\mathbf{A}|=\det(\mathbf{A})=\displaystyle\sum_i{\mathbf{A}_{ij}\mathbf{C}_{ij}}=\displaystyle\sum_j{\mathbf{A}_{ij}\mathbf{C}_{ij}}`
+        where :math:`\mathbf{C}_{ij}` is cofactor of :math:`\mathbf{A}_{ij}`
 
         The determinant of a matrix represents the **scale factor** of space it is applied on.
 
@@ -866,12 +870,12 @@ class Matrix:
     def trace(self) -> Fraction:
         r"""Computes the trace of this square matrix :math:`\mathbf{A}`
 
-        :math:`\mathrm{tr}\left(\mathbf{A}\right)=\displaystyle\sum_i{\mathbf{A}_{ii}}`
+        :math:`\mathrm{tr}(\mathbf{A})=\displaystyle\sum_i{\mathbf{A}_{ii}}`
 
         Returns
         -------
         :obj:`~fractions.Fraction`
-            The trace of the square matrix: :math:`tr(\mathbf{A})`
+            The trace of the square matrix: :math:`\mathrm{tr}(\mathbf{A})`
 
         Raises
         ------
@@ -912,9 +916,9 @@ class Matrix:
         r"""Computes a new matrix :math:`\mathbf{A}^{-1}` that is this matrix :math:`\mathbf{A}`'s inverse
 
         :math:`\mathbf{A}^{-1}=\frac{\mathrm{adj}\left(\mathbf{A}\right)}{\det(\mathbf{A})}` if :math:`\det(\mathbf{A})\ne0`
-        where :math:`\mathbf{A}^{-1}\mathbf{A}=\mathbf{A}\mathbf{A}^{-1}=\mathbf{I}`:
+        where :math:`\mathbf{A}^{-1}\mathbf{A}=\mathbf{A}\mathbf{A}^{-1}=\mathbf{I}`
 
-        (:math:`\mathbf{A}^{-1}` is the transformation that cancels out this transformation :math:`\mathbf{A}`)
+        (:math:`\mathbf{A}^{-1}` is the transformation that undos this transformation :math:`\mathbf{A}`)
 
         Returns
         -------
