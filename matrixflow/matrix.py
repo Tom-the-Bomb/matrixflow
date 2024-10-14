@@ -709,9 +709,9 @@ class Matrix:
         return a, b
 
     def change_basis(self, new_bases: Matrix) -> Matrix:
-        r"""Changes the bases for this linear transformation :math:`\mathbf{M}` into the new bases defined by ``new_bases`` :math:`\mathbf{P}`
+        r"""Changes the bases of this linear transformation :math:`\mathbf{M}`,
 
-        :math:`\mathbf{P}^{-1}\mathbf{M}\mathbf{P}`
+        into the new bases defined by ``new_bases`` :math:`\mathbf{P}`, by computing: :math:`\mathbf{P}^{-1}\mathbf{M}\mathbf{P}`
 
         Parameters
         ----------
@@ -896,7 +896,7 @@ class Matrix:
         Returns
         -------
         :class:`int`
-            The rank of this matrix
+            The rank of this matrix: :math:`\rho(\mathbf{A})`
         """
         row_echelon, _ = self.row_echelon_form()
         rank = 0
