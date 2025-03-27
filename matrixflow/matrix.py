@@ -1354,12 +1354,12 @@ class Matrix:
             Unable to compute matrix multiplication:
             The # of columns in the left matrix does not match the # of rows in the right matrix
         """
+        power = Matrix.identity(self.rows)
+
         if other >= 0:
-            power = Matrix.identity(self.rows)
             for _ in range(other):
                 power @= self
         else:
-            power = Matrix.identity(self.rows)
             inverse = self.inverted()
 
             for _ in range(abs(other)):
