@@ -452,7 +452,7 @@ class Matrix:
         return self == self.transposed()
 
     def is_skew_symmetric(self) -> bool:
-        r"""Returns ``True`` if this matrix :math:`\mathbf{A}` is **skew-symmetric**
+        r"""Returns ``True`` if this matrix :math:`\mathbf{A}` is **skew-symmetric**:
         :math:`\mathbf{A}=-\mathbf{A}^\intercal`, else ``False``
 
         Returns
