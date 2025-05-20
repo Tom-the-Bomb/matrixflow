@@ -240,7 +240,7 @@ class Vector:
 
         :math:`\vec{a_1}=\left(\|\vec{a}\|\cos\theta\right)\hat{b}={\frac{\vec{a}\cdot\vec{b}}{\|\vec{b}\|}}\hat{b}`
 
-        The magnitude of the projection vector is the scalar projection which is also the dot product scaled down by the magnitude of :math:`\vec{b}`
+        The magnitude of the projection vector is the scalar projection, which is also the dot product scaled down by the magnitude of :math:`\vec{b}`
 
         Parameters
         ----------
