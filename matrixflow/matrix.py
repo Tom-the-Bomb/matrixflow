@@ -80,6 +80,38 @@ class Matrix:
         ]
 
     @classmethod
+    def from_row_vector(cls, row: Vector) -> Self:
+        r"""Typecasts a **row** vector to an equivalent matrix with a **single** row
+
+        Parameters
+        ----------
+        row :
+            The row vector to convert to an equivalent matrix
+
+        Returns
+        -------
+        :obj:`~typing.Self`
+            The single row matrix
+        """
+        return cls.from_1D(row.inner, len(row))
+
+    @classmethod
+    def from_col_vector(cls, col: Vector) -> Self:
+        r"""Typecasts a **column** vector to an equivalent matrix with a **single** row
+
+        Parameters
+        ----------
+        col :
+            The column vector to convert to an equivalent matrix
+
+        Returns
+        -------
+        :obj:`~typing.Self`
+            The single column matrix
+        """
+        return cls.from_1D(col.inner, 1)
+
+    @classmethod
     def from_1D(cls, entries: Sequence[Number], cols: int) -> Self:
         """Creates a matrix with ``cols`` number of columns from a flat, 1D sequence
 
@@ -135,9 +167,9 @@ class Matrix:
 
         Parameters
         ----------
-        rows : :class:`int`
+        rows :
             The number of rows
-        cols : :class:`int`
+        cols :
             The number of columns
 
         Returns
@@ -565,6 +597,10 @@ class Matrix:
         ...
 
     @overload
+    def row_echelon_form(self, b: Vector) -> tuple[Matrix, Matrix]:
+        ...
+
+    @overload
     def reduced_row_echelon_form(self, b: None = None) -> tuple[Matrix, None]:
         ...
 
@@ -572,7 +608,11 @@ class Matrix:
     def reduced_row_echelon_form(self, b: Matrix) -> tuple[Matrix, Matrix]:
         ...
 
-    def row_echelon_form(self, b: Matrix | None = None) -> tuple[Matrix, Matrix | None]:
+    @overload
+    def reduced_row_echelon_form(self, b: Vector) -> tuple[Matrix, Matrix]:
+        ...
+
+    def row_echelon_form(self, b: Matrix | Vector | None = None) -> tuple[Matrix, Matrix | None]:
         r"""Computes a new matrix that is this matrix :math:`\mathbf{A}`'s **row echelon form** using the
         `Gaussian elimination algorithm <https://math.libretexts.org/Bookshelves/Linear_Algebra/Fundamentals_of_Matrix_Algebra_(Hartman)/01%3A_Systems_of_Linear_Equations/1.03%3A_Elementary_Row_Operations_and_Gaussian_Elimination>`_
 
@@ -599,7 +639,7 @@ class Matrix:
             and a **copy** of the matrix ``b`` which mirrored the row operations performed
         """
         copy = self.copy()
-        b_copy = b.copy() if b is not None else None
+        b_copy = Matrix.from_col_vector(b) if isinstance(b, Vector) else b.copy() if b is not None else None
 
         # "Forward steps" for gaussian elimination to row echelon form
         #
@@ -655,7 +695,7 @@ class Matrix:
 
         return copy, b_copy
 
-    def reduced_row_echelon_form(self, b: Matrix | None = None) -> tuple[Matrix, Matrix | None]:
+    def reduced_row_echelon_form(self, b: Matrix | Vector | None = None) -> tuple[Matrix, Matrix | None]:
         r"""Computes a new matrix that is this matrix :math:`\mathbf{A}`'s **reduced row echelon form**
 
         Similar to :meth:`row_echelon_form`: ``b`` will mirror the row operations applied onto this matrix.

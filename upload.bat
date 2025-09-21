@@ -2,4 +2,4 @@
 
 py -m build
 
-py -m twine upload --config-file .pypirc dist/*
+py -m twine upload --config-file .pypirc --skip-existing dist/*

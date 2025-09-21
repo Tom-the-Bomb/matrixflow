@@ -35,7 +35,7 @@ class Vector:
 
         Returns
         -------
-        :class:`Self`
+        :obj:`~typing.Self`
             The created zero vector: :math:`\vec{0}`
         """
         return cls([0] * n)
