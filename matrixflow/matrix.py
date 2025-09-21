@@ -593,11 +593,7 @@ class Matrix:
         ...
 
     @overload
-    def row_echelon_form(self, b: Matrix) -> tuple[Matrix, Matrix]:
-        ...
-
-    @overload
-    def row_echelon_form(self, b: Vector) -> tuple[Matrix, Matrix]:
+    def row_echelon_form(self, b: Matrix | Vector) -> tuple[Matrix, Matrix]:
         ...
 
     @overload
@@ -605,11 +601,7 @@ class Matrix:
         ...
 
     @overload
-    def reduced_row_echelon_form(self, b: Matrix) -> tuple[Matrix, Matrix]:
-        ...
-
-    @overload
-    def reduced_row_echelon_form(self, b: Vector) -> tuple[Matrix, Matrix]:
+    def reduced_row_echelon_form(self, b: Matrix | Vector) -> tuple[Matrix, Matrix]:
         ...
 
     def row_echelon_form(self, b: Matrix | Vector | None = None) -> tuple[Matrix, Matrix | None]:

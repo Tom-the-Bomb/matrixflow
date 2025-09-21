@@ -1,6 +1,6 @@
 [project]
 name = "matrixflow"
-version = "0.1.4"
+version = "0.1.5"
 authors = [
     {name = "Tom-the-Bomb", email = "me@tomthebomb.dev"}
 ]

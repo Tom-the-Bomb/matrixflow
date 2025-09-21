@@ -32,7 +32,7 @@ A = Matrix([
     [7, 8, 9],
 ])
 print(A.det()) # calculates the determinant
-A.transpose()   # transposes `A` in place
+A.transpose()  # transposes `A` in place
 
 u = Vector([1, 2, 3])
 v = Vector([4, 5, 6])
